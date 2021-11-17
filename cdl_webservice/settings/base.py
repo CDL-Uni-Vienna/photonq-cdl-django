@@ -182,3 +182,7 @@ REST_FRAMEWORK = {
     #             'rest_framework.permissions.IsAuthenticated',
     # ),
 }
+
+BIFROST_APPS = {
+    "cdl_rest_api": "",
+}

@@ -1,60 +1,81 @@
-# Use an official Python runtime based on Debian 10 "buster" as a parent image.
-FROM python:3.8.1-slim-buster
+FROM python:3.9-slim
 
-# Add user that will be used in the container.
-RUN useradd wagtail
+LABEL description="This container serves as Docker Container for cdl_webservice."
+LABEL org.opencontainers.image.source="https://github.com/zilkf92/cdl_webservice"
+LABEL maintainer="zilk.felix@univie.ac.at"
 
-# Port used by this container to serve HTTP.
+# Add custom environment variables needed by Django or your settings file here:
+# DJANGO_DEBUG set to off when sent to live environment
+ENV DJANGO_DEBUG=on \
+    DJANGO_SETTINGS_MODULE=cdl_webservice.settings.production
+
+# The ASGI configuration (customize as needed):
+ENV ASGI_VIRTUALENV=/venv \
+    ASGI_CONFIG=bifrost.asgi:application \
+    ASGI_HOST=0.0.0.0 \
+    ASGI_PORT=8000 \
+    ASGI_VERBOSITY=1 \
+    ASGI_ACCESS_LOG=-
+
+WORKDIR /code/
+
+# Add pre-installation requirements:
+ADD requirements/ /requirements/
+
+# Update, install and cleaning:
+RUN set -ex \
+    && BUILD_DEPS=" \
+    build-essential \
+    git \
+    libexpat1-dev \
+    libjpeg62-turbo-dev \
+    libpcre3-dev \
+    libpq-dev \
+    zlib1g-dev \
+    libffi-dev \
+    tini \
+    " \
+    && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
+    && python3 -m venv /venv \
+    && /venv/bin/pip install -U pip \
+    && /venv/bin/pip install --no-cache-dir -r /requirements/production.txt \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install packages needed to run your application (not build deps):
+# We need to recreate the /usr/share/man/man{1..8} directories first because
+# they were clobbered by a parent image.
+RUN set -ex \
+    && RUN_DEPS=" \
+    libexpat1 \
+    libjpeg62-turbo \
+    libpcre3 \
+    libpq5 \
+    mime-support \
+    postgresql-client \
+    procps \
+    zlib1g \
+    tini \
+    " \
+    && seq 1 8 | xargs -I{} mkdir -p /usr/share/man/man{} \
+    && apt-get update && apt-get install -y --no-install-recommends $RUN_DEPS \
+    && rm -rf /var/lib/apt/lists/*
+
+#RUN which tini
+
 EXPOSE 8000
 
-# Set environment variables.
-# 1. Force Python stdout and stderr streams to be unbuffered.
-# 2. Set PORT variable that is used by Gunicorn. This should match "EXPOSE"
-#    command.
-ENV PYTHONUNBUFFERED=1 \
-    PORT=8000
+VOLUME /code/media
 
-# Install system packages required by Wagtail and Django.
-RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    libmariadbclient-dev \
-    libjpeg62-turbo-dev \
-    zlib1g-dev \
-    libwebp-dev \
- && rm -rf /var/lib/apt/lists/*
+ADD . /code/
 
-# Install the application server.
-RUN pip install "gunicorn==20.0.4"
+# Place init, make it executable and
+# make sure venv files can be used by asgi process:
+RUN chmod +x /code/docker-entrypoint.sh ;\
+    chmod +x /code/run_asgi.sh ;\
+    \
+    # Call collectstatic with dummy environment variables:
+    DATABASE_URL=postgres://none REDIS_URL=none /venv/bin/python manage.py collectstatic --noinput
 
-# Install the project requirements.
-COPY requirements.txt /
-RUN pip install -r /requirements.txt
-
-# Use /app folder as a directory where the source code is stored.
-WORKDIR /app
-
-# Set this directory to be owned by the "wagtail" user. This Wagtail project
-# uses SQLite, the folder needs to be owned by the user that
-# will be writing to the database file.
-RUN chown wagtail:wagtail /app
-
-# Copy the source code of the project into the container.
-COPY --chown=wagtail:wagtail . .
-
-# Use user "wagtail" to run the build commands below and the server itself.
-USER wagtail
-
-# Collect static files.
-RUN python manage.py collectstatic --noinput --clear
-
-# Runtime command that executes when "docker run" is called, it does the
-# following:
-#   1. Migrate the database.
-#   2. Start the application server.
-# WARNING:
-#   Migrating database at the same time as starting the server IS NOT THE BEST
-#   PRACTICE. The database should be migrated manually or using the release
-#   phase facilities of your hosting platform. This is used only so the
-#   Wagtail instance can be started with a simple "docker run" command.
-CMD set -xe; python manage.py migrate --noinput; gunicorn cdl_webservice.wsgi:application
+ENTRYPOINT ["/usr/bin/tini", "--", "/code/docker-entrypoint.sh"]
+CMD ["/code/run_asgi.sh"]

@@ -17,7 +17,9 @@ class QubitMeasurementItem(models.Model):
     encodedQubitIndex = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
-        ]
+        ],
+        blank=True,
+        null=True,
     )
     theta = models.DecimalField(
         validators=[
@@ -26,6 +28,8 @@ class QubitMeasurementItem(models.Model):
         ],
         decimal_places=2,
         max_digits=5,
+        blank=True,
+        null=True,
     )
     phi = models.DecimalField(
         validators=[
@@ -34,6 +38,8 @@ class QubitMeasurementItem(models.Model):
         ],
         decimal_places=2,
         max_digits=5,
+        blank=True,
+        null=True,
     )
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",
@@ -104,12 +110,18 @@ class ExperimentBase(models.Model):
     """ """
 
     experimentName = models.CharField(max_length=255)
-    projectId = models.CharField(max_length=255)
+    projectId = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
     maxRuntime = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
             MaxValueValidator(120),
-        ]
+        ],
+        blank=True,
+        null=True,
     )
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",
@@ -153,6 +165,7 @@ class ExperimentResult(models.Model):
     experiment = models.ForeignKey(
         "Experiment",
         on_delete=models.SET_NULL,
+        blank=True,
         null=True,
     )
 

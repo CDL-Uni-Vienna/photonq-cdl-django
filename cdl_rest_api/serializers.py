@@ -3,18 +3,6 @@ from rest_framework import serializers
 from cdl_rest_api import models
 
 
-class PassThroughSerializer(serializers.Field):
-    def to_representation(self, instance):
-        # This function is for the direction: Instance -> Dict
-        # If you only need this, use a ReadOnlyField, or SerializerField
-        return None
-
-    def to_internal_value(self, data):
-        # This function is for the direction: Dict -> Instance
-        # Here you can manipulate the data if you need to.
-        return data
-
-
 class QubitMeasurementItemSerializer(serializers.ModelSerializer):
     """ """
 
@@ -80,8 +68,8 @@ class qubitComputingSerializer(serializers.ModelSerializer):
 class ComputeSettingsSerializer(serializers.ModelSerializer):
     """ """
 
-    qubitComputing = PassThroughSerializer()
-    clusterState = PassThroughSerializer()
+    qubitComputing = qubitComputingSerializer()
+    clusterState = clusterStateSerializer()
     encodedQubitMeasurements = QubitMeasurementItemSerializer(many=True)
 
     def create(self, validated_data):
@@ -113,7 +101,7 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
 class ExperimentSerializer(serializers.ModelSerializer):
     """ """
 
-    ComputeSettings = PassThroughSerializer()
+    ComputeSettings = ComputeSettingsSerializer()
     user = serializers.ReadOnlyField(source="user.email")
 
     choices = ["RUNNING", "FAILED", "DONE"]

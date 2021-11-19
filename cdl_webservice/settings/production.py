@@ -33,10 +33,10 @@ DEBUG_PROPAGATE_EXCEPTIONS = (
     os.environ.get("DJANGO_DEBUG_PROPAGATE_EXCEPTIONS", "off") == "on"
 )
 
-# This is used by Wagtail's email notifications for constructing absolute
-# URLs. Please set to the domain that users will access the admin site.
-if "PRIMARY_HOST" in os.environ:
-    BASE_URL = "https://{}".format(os.environ["PRIMARY_HOST"])
+# # This is used by Wagtail's email notifications for constructing absolute
+# # URLs. Please set to the domain that users will access the admin site.
+# if "PRIMARY_HOST" in os.environ:
+#     BASE_URL = "https://{}".format(os.environ["PRIMARY_HOST"])
 
 # > Secret Key
 # SECURITY WARNING: keep the secret key used in production secret!

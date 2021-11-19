@@ -65,7 +65,7 @@ RUN set -ex \
 
 EXPOSE 8000
 
-VOLUME /code/media
+# VOLUME /code/media
 
 ADD . /code/
 

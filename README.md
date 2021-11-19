@@ -1,1 +1,15 @@
 # cdl-django-webservice
+
+Required env variables:
+
+DJANGO_DEBUG==off
+SECRET_KEY
+SECURE_SSL_REDIRECT==on
+ALLOWED_HOSTS
+
+POSTGRES_DB
+POSTGRES_USER
+POSTGRES_PASSWORD
+DATABASE_URL
+
+

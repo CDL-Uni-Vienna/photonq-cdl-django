@@ -1,5 +1,3 @@
-# Import standard base classes that are needed to use when overwriting or
-# customizing the default Django user model
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -43,7 +41,9 @@ class QubitMeasurementItem(models.Model):
     )
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",
-        on_delete=models.SET_NULL,  # hatten hier CASCADE?
+        # CASCADE? ComputeSettings should'nt be deleted when
+        # encodedQubitMeasurements Item is deleted
+        on_delete=models.SET_NULL,
         null=True,
         related_name="encodedQubitMeasurements",
     )

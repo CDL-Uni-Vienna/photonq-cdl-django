@@ -1,25 +1,28 @@
-from django.shortcuts import render
+from django.contrib.auth import login
 
 from rest_framework.views import APIView
 from rest_framework.response import Response  # Standard Response object
 from rest_framework import status
-from rest_framework import viewsets
+
 from rest_framework import generics
-from rest_framework.authentication import TokenAuthentication
-from rest_framework import filters
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAuthenticated
+
+
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+
+# from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
+
+from knox.views import LoginView as KnoxLoginView
 
 from cdl_rest_api import serializers
 from cdl_rest_api import models
-from cdl_rest_api import permissions
+
 
 # instead of check for primarykey we create multiple endpoints
 class ExperimentDetailView(APIView):
     """ """
 
-    # To Do: add corresponding result if available
     permission_classes = (IsAuthenticated,)
     # serializers_class = serializers.ExperimentSerializer
 
@@ -179,23 +182,29 @@ class ExperimentListView(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# ModelViewSet specifically designed for managing models through API
-class UserProfileViewSet(viewsets.ModelViewSet):
-    """Handle creating and updating profiles"""
-
-    serializer_class = serializers.UserProfileSerializer
-    # Determine objects in the database which are managed in this view
+class RegisterView(generics.CreateAPIView):
     queryset = models.UserProfile.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (permissions.UpdateOwnProfile,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = (
-        "name",
-        "email",
-    )
+    serializer_class = serializers.UserProfileSerializer
 
 
-class UserLoginApiView(ObtainAuthToken):
+class UserLoginApiView(KnoxLoginView):
     """Handle creating user authentication tokens"""
 
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    permission_classes = (AllowAny,)
+
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        # create session based auth with token auth
+        login(request, user)
+        return super(UserLoginApiView, self).post(request, format=None)
+
+
+class UpdateView(generics.UpdateAPIView):
+    queryset = models.UserProfile.objects.all()
+    serializer_class = serializers.UserProfileSerializer
+    permission_classes = [
+        IsAuthenticated,
+    ]

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
+    "knox",
     # Own app
     "cdl_rest_api",
     # BIFROST
@@ -176,7 +177,8 @@ AUTH_USER_MODEL = "cdl_rest_api.UserProfile"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
+        # "rest_framework.authentication.TokenAuthentication",
+        "knox.auth.TokenAuthentication",
     ),
     # 'DEFAULT_PERMISSION_CLASSES':(
     #             'rest_framework.permissions.IsAuthenticated',

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+# from django.contrib.auth.models import User
+
 from cdl_rest_api import models
 
 
@@ -144,12 +146,14 @@ class ExperimentResultSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+# User Serializer
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializes a user profile object"""
 
     # ModelSerializer uses Meta class to configure the serializers
     # to point to a specific model
     class Meta:
+        # model = User
         model = models.UserProfile
         fields = ("id", "email", "name", "password")
         # Extra keyword args

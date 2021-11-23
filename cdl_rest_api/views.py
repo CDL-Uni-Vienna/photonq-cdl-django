@@ -17,6 +17,7 @@ from knox.views import LoginView as KnoxLoginView
 
 from cdl_rest_api import serializers
 from cdl_rest_api import models
+from cdl_rest_api.permissions import UpdateOwnProfile
 
 
 # instead of check for primarykey we create multiple endpoints
@@ -207,4 +208,6 @@ class UpdateView(generics.UpdateAPIView):
     serializer_class = serializers.UserProfileSerializer
     permission_classes = [
         IsAuthenticated,
+        # To Do: User Permissions to update own profile
+        UpdateOwnProfile,
     ]

@@ -126,6 +126,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Experiment
         fields = (
+            # object Experiment has no Database ID
             "ComputeSettings",
             "user",
             "status",

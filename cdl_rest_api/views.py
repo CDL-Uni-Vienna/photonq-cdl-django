@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from rest_framework import permissions
 
 from rest_framework.views import APIView
 from rest_framework.response import Response  # Standard Response object
@@ -10,7 +11,7 @@ from rest_framework import generics
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
 # from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 
 
 from knox.views import LoginView as KnoxLoginView
@@ -81,14 +82,13 @@ class ExperimentDetailView(APIView):
         if experiment is not None:
             if experimentResult is not None:
                 experiment_serializer = serializers.ExperimentSerializer(
-                    data=experiment,
+                    experiment,
                 )
-                experiment_serializer.is_valid()
                 result_serializer = serializers.ExperimentResultSerializer(
-                    data=experimentResult
+                    experimentResult,
                 )
-                result_serializer.is_valid()
-                print(experiment_serializer.data)
+
+                # print(experiment_serializer.data)
                 return Response(
                     {
                         "experimentConfiguration": experiment_serializer.data,
@@ -181,6 +181,23 @@ class ExperimentListView(generics.ListCreateAPIView):
             queryset = models.Experiment.objects.filter(user=request.user)
         serializer = serializers.ExperimentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# only needs to handle create-request from admin
+class ResultView(generics.ListCreateAPIView):
+    queryset = models.ExperimentResult.objects.all()
+    serializer_class = serializers.ExperimentResultSerializer
+    permission_classes = [
+        IsAdminUser,
+    ]
+
+
+class ResultDetailView(generics.RetrieveAPIView):
+    queryset = models.ExperimentResult.objects.all()
+    serializer_class = serializers.ExperimentResultSerializer
+    permission_classes = [
+        IsAdminUser,
+    ]
 
 
 class RegisterView(generics.CreateAPIView):

@@ -115,6 +115,7 @@ class ExperimentBase(models.Model):
         blank=True,
         null=True,
     )
+    # Users canspecifiy how long they will use our system
     maxRuntime = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
@@ -122,6 +123,8 @@ class ExperimentBase(models.Model):
         ],
         blank=True,
         null=True,
+        # set default Runtime to 5 seconds
+        default=5,
     )
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",

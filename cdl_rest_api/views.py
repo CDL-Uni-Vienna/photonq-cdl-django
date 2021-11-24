@@ -1,5 +1,6 @@
 from django.contrib.auth import login
 from rest_framework import permissions
+from rest_framework.serializers import Serializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response  # Standard Response object
@@ -42,7 +43,7 @@ class ExperimentDetailView(APIView):
                     experiment = models.Experiment.objects.get(
                         experimentId=experiment_id
                     )
-                    # if ExperimentResult doesn't exist, else remains None
+                    # if ExperimentResult exists, else remains None
                     if models.ExperimentResult.objects.filter(
                         experiment=experiment
                     ).exists():
@@ -58,7 +59,7 @@ class ExperimentDetailView(APIView):
             else:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id,
-                    # filtr also Experiment belongs to user
+                    # filter also: Experiment belongs to user
                     user=request.user,
                 ).exists():
                     experiment = models.Experiment.objects.get(
@@ -98,7 +99,6 @@ class ExperimentDetailView(APIView):
                 )
 
             else:
-                # if experiment is done, an ExperimentResult is also returned
                 experiment_serializer = serializers.ExperimentSerializer(
                     experiment,
                 )
@@ -117,6 +117,23 @@ class ExperimentDetailView(APIView):
                 "Unexpected error.",
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    # use patch to update status of experiment object
+    def patch(self, request, experiment_id):
+        """ """
+        if request.user.is_staff:
+            experiment = models.Experiment.objects.get(experimentId=experiment_id)
+            serializer = serializers.ExperimentSerializer(
+                experiment, data=request.data, partial=True
+            )
+            if serializer.is_valid():
+                serializer.save()
+                # print(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response("Not allowed.", status=status.HTTP_403_FORBIDDEN)
 
     def delete(self, request, experiment_id):
         """ """
@@ -225,6 +242,5 @@ class UpdateView(generics.UpdateAPIView):
     serializer_class = serializers.UserProfileSerializer
     permission_classes = [
         IsAuthenticated,
-        # To Do: User Permissions to update own profile
         UpdateOwnProfile,
     ]

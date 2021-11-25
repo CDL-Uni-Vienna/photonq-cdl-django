@@ -128,13 +128,13 @@ class ExperimentSerializer(serializers.ModelSerializer):
         model = models.Experiment
         fields = (
             # object Experiment has no Database ID
-            "ComputeSettings",
             "user",
             "status",
             "experimentName",
             "projectId",
             "maxRuntime",
             "experimentId",
+            "ComputeSettings",
         )
         depth = 1
 

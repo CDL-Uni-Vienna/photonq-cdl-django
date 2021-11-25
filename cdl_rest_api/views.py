@@ -213,6 +213,17 @@ class ExperimentListView(generics.ListCreateAPIView):
         serializer = serializers.ExperimentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # need to overwrite create to save user to experiment
+    # user=request.user is what the standard method doesn't do
+    def create(self, request):
+        serializer = serializers.ExperimentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            # print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
+
 
 # only needs to handle create-request from admin
 class ResultView(generics.ListCreateAPIView):

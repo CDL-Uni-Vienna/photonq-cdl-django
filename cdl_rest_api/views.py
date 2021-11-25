@@ -251,7 +251,7 @@ class UserLoginApiView(KnoxLoginView):
         return super(UserLoginApiView, self).post(request, format=None)
 
 
-class UpdateView(generics.UpdateAPIView):
+class UserUpdateView(generics.UpdateAPIView):
     queryset = models.UserProfile.objects.all()
     serializer_class = serializers.UserProfileSerializer
     permission_classes = [

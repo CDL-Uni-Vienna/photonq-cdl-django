@@ -119,13 +119,27 @@ class ExperimentDetailView(APIView):
             )
 
     # use patch to update status of experiment object
+    # alternative: generic view + permission class isAdmin, but requires additional
+    # endpoint, plus for GET this is not possiblle due to more complex logic
     def patch(self, request, experiment_id):
         """ """
         if request.user.is_staff:
-            experiment = models.Experiment.objects.get(experimentId=experiment_id)
+            if models.Experiment.objects.filter(experimentId=experiment_id).exists():
+                experiment = models.Experiment.objects.get(experimentId=experiment_id)
+            else:
+                return Response(
+                    "An Experiment with the specified ID was not found.",
+                    status=status.HTTP_404_NOT_FOUND,
+                )
             serializer = serializers.ExperimentSerializer(
-                experiment, data=request.data, partial=True
+                # Need experiment to overwrite, if experiment was missing
+                # method would fail due to missing required fields.
+                # Convert experiment from db to JSON and merge fields from data.
+                experiment,
+                data=request.data,
+                partial=True,
             )
+            # If the merged JSON is valid
             if serializer.is_valid():
                 serializer.save()
                 # print(serializer.data)

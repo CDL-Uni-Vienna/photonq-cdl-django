@@ -99,7 +99,6 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-# To Do: Serializer fertigstellen
 class ExperimentSerializer(serializers.ModelSerializer):
     """ """
 
@@ -122,6 +121,8 @@ class ExperimentSerializer(serializers.ModelSerializer):
             ComputeSettings=computeSetting, **validated_data
         )
         return Experiment
+
+    # custom update function is needed to update nested models.
 
     class Meta:
         model = models.Experiment

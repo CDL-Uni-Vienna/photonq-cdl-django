@@ -72,7 +72,9 @@ class CircuitConfigurationItem(models.Model):
 
 
 class clusterState(models.Model):
-    """ """
+    """
+    This model defines the number of qubits and shape of the cluster
+    """
 
     numberOfQubits = models.PositiveIntegerField(
         validators=[
@@ -84,15 +86,19 @@ class clusterState(models.Model):
 
 
 class qubitComputing(models.Model):
-    """ """
+    """
+    qubitComputing has 1 field: circuitConfiguration is
+    and 1 array: circuitAngles
+    """
 
-    # qubitComputing has 1 field and 1 array
     # array is handled in serializer
     circuitConfiguration = models.CharField(max_length=255)
 
 
 class ComputeSettings(models.Model):
-    """ """
+    """
+    Contains qubitComputing and clusterState
+    """
 
     clusterState = models.ForeignKey(
         "clusterState",
@@ -107,7 +113,9 @@ class ComputeSettings(models.Model):
 
 
 class ExperimentBase(models.Model):
-    """ """
+    """
+    Contains all fields of an Experiment that can be specified by the user
+    """
 
     experimentName = models.CharField(max_length=255)
     projectId = models.CharField(
@@ -115,7 +123,7 @@ class ExperimentBase(models.Model):
         blank=True,
         null=True,
     )
-    # Users canspecifiy how long they will use our system
+    # Users can specifiy how long they will use the system
     maxRuntime = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
@@ -134,7 +142,10 @@ class ExperimentBase(models.Model):
 
 
 class Experiment(ExperimentBase):
-    """ """
+    """
+    Contains additional fields set by the server with ExperimentBase
+    as parent class
+    """
 
     experimentId = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
@@ -150,7 +161,9 @@ class Experiment(ExperimentBase):
 
 
 class ExperimentResult(models.Model):
-    """ """
+    """
+    This model defines a Result to a corresponding Experiment
+    """
 
     startTime = models.DateTimeField(auto_now_add=True)
     totalCounts = models.PositiveIntegerField()
@@ -186,8 +199,7 @@ class UserProfileManager(BaseUserManager):
 
     def create_user(self, email, name, password=None):
         """Create a new user profile"""
-        # Case when email is either empty string or null value
-        # Raise exception
+        # Case when email is either empty string or null value: Raise exception
         if not email:
             raise ValueError("Users must have an email address")
 
@@ -220,14 +232,14 @@ class UserProfileManager(BaseUserManager):
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Database model for user in the system"""
 
-    # Define various fields that model should provide
+    # Define various fields that model should provide:
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     # Determines fields for the permission system
     is_active = models.BooleanField(default=True)
     # Determines acces to Django admin
     is_staff = models.BooleanField(default=False)
-    # Specify model manager
+    # Specify model manager:
     # This is required because the custom user model is used with
     # the Django CLI
     objects = UserProfileManager()

@@ -257,9 +257,17 @@ class UserLoginApiView(KnoxLoginView):
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
+        userId = user.id
+        userEmail = user.email
+        userName = user.name
         # create session based auth with token auth
         login(request, user)
-        return super(UserLoginApiView, self).post(request, format=None)
+        temp_list = super(UserLoginApiView, self).post(request, format=None)
+        temp_list.data["id"] = userId
+        temp_list.data["email"] = userEmail
+        temp_list.data["name"] = userName
+
+        return Response(temp_list.data)
 
 
 class UserUpdateView(generics.UpdateAPIView):

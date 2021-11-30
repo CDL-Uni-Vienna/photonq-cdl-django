@@ -86,8 +86,8 @@ CACHE_CONTROL_STALE_WHILE_REVALIDATE = int(
 
 # > Force HTTPS Redirect
 # https://docs.djangoproject.com/en/stable/ref/settings/#secure-ssl-redirect
-if os.environ.get("SECURE_SSL_REDIRECT", "true").strip().lower() == "true":
-    SECURE_SSL_REDIRECT = False
+if os.environ.get("SECURE_SSL_REDIRECT", "false").strip().lower() == "true":
+    SECURE_SSL_REDIRECT = True
 
 # This will allow the cache to swallow the fact that the website is behind TLS
 # and inform the Django using "X-Forwarded-Proto" HTTP header.

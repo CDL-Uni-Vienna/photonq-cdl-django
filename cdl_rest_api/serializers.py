@@ -104,6 +104,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
     ComputeSettings = ComputeSettingsSerializer()
     user = serializers.ReadOnlyField(source="user.email")
+    experimentId = serializers.ReadOnlyField()
 
     choices = ["IN QUEUE", "RUNNING", "FAILED", "DONE"]
     status = serializers.ChoiceField(choices)

@@ -5,6 +5,8 @@ from django.contrib.auth.models import BaseUserManager
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+import uuid
+
 
 class QubitMeasurementItem(models.Model):
     """
@@ -147,7 +149,9 @@ class Experiment(ExperimentBase):
     as parent class
     """
 
-    experimentId = models.CharField(max_length=255)
+    experimentId = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
     status = models.CharField(max_length=255)
     # a user can have multiple Experiments
     # currently only implemented in Experiment and not in Results
@@ -206,7 +210,6 @@ class UserProfileManager(BaseUserManager):
         email = self.normalize_email(email)
         # By default self.model is set to the model that the manager is for
         user = self.model(email=email, name=name)
-
         # Use set_password function that comes with user model
         # Makes sure the password is stored as hash in database
         user.set_password(password)
@@ -232,6 +235,7 @@ class UserProfileManager(BaseUserManager):
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """Database model for user in the system"""
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # Define various fields that model should provide:
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)

@@ -10,8 +10,8 @@ done
 echo >&2 "Postgres is up - continuing"
 
 # Make sure media is writable by daphne process.
-echo >&2 "correct ownership of media"
-chown -Rv 1000:2000 /code/media/
+#echo >&2 "correct ownership of media"
+#chown -Rv 1000:2000 /code/media/
 
 # Migrate database for deployment.
 if [ "$1" = "/code/run_asgi.sh" ]; then

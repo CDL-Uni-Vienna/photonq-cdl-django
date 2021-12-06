@@ -120,6 +120,12 @@ class ExperimentBase(models.Model):
     """
 
     experimentName = models.CharField(max_length=255)
+    circuitId = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(22),
+        ],
+    )
     projectId = models.CharField(
         max_length=255,
         blank=True,

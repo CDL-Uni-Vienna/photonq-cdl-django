@@ -135,6 +135,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
             "projectId",
             "maxRuntime",
             "experimentId",
+            "circuitId",
             "ComputeSettings",
         )
         depth = 1

@@ -189,3 +189,5 @@ REST_FRAMEWORK = {
 BIFROST_APPS = {
     "cdl_rest_api": "",
 }
+
+APPEND_SLASH=False

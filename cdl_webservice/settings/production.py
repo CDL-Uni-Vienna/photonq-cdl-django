@@ -156,7 +156,9 @@ if "DJANGO_SERVER_EMAIL" in os.environ:
 # > Database Configuration
 # See https://pypi.org/project/dj-database-url/
 # See https://docs.djangoproject.com/en/stable/ref/settings/#databases
-db_from_env = dj_database_url.config(conn_max_age=500)
+db_from_env = dj_database_url.config(
+    default=os.path.expandvars(os.environ["DATABASE_URL"]), engine="django_cockroachdb"
+)
 DATABASES["default"].update(db_from_env)
 
 # Configure caches from cache url

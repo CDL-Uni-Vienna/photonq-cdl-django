@@ -25,7 +25,7 @@ class clusterStateSerializer(serializers.ModelSerializer):
     """ """
 
     choices = ["linear", "ghz"]
-    graphState = serializers.ChoiceField(choices)
+    presetSettings = serializers.ChoiceField(choices)
 
     class Meta:
         model = models.clusterState

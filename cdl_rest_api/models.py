@@ -78,13 +78,13 @@ class clusterState(models.Model):
     This model defines the number of qubits and shape of the cluster
     """
 
-    numberOfQubits = models.PositiveIntegerField(
+    amountQubits = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
             MaxValueValidator(4),
         ]
     )
-    graphState = models.CharField(max_length=255)
+    presetSettings = models.CharField(max_length=255)
 
 
 class qubitComputing(models.Model):

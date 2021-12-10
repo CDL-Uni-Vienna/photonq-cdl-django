@@ -23,14 +23,14 @@ from .base import *  # noqa
 # SECURITY WARNING: don't run with debug turned on in production!
 # IMPORTANT: Specified in the environironment or set to default (off).
 # See https://docs.djangoproject.com/en/stable/ref/settings/#debug
-DEBUG = os.environ.get("DJANGO_DEBUG", "off") == "on"
+DEBUG = os.environ.get("DJANGO_DEBUG", "off") == "off"
 
 # > DEBUG_PROPAGATE_EXCEPTIONS Switch
 # SECURITY WARNING: don't run with debug turned on in production!
 # IMPORTANT: Specified in the environironment or set to default (off).
 # See https://docs.djangoproject.com/en/stable/ref/settings/#debug
 DEBUG_PROPAGATE_EXCEPTIONS = (
-    os.environ.get("DJANGO_DEBUG_PROPAGATE_EXCEPTIONS", "off") == "on"
+    os.environ.get("DJANGO_DEBUG_PROPAGATE_EXCEPTIONS", "off") == "off"
 )
 
 # # This is used by Wagtail's email notifications for constructing absolute

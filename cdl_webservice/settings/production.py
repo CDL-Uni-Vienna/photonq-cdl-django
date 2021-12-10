@@ -156,10 +156,21 @@ if "DJANGO_SERVER_EMAIL" in os.environ:
 # > Database Configuration
 # See https://pypi.org/project/dj-database-url/
 # See https://docs.djangoproject.com/en/stable/ref/settings/#databases
-db_from_env = dj_database_url.config(
-    default=os.path.expandvars(os.environ["DATABASE_URL"]), engine="django_cockroachdb"
-)
-DATABASES["default"].update(db_from_env)
+# db_from_env = dj_database_url.config(
+#     default=os.path.expandvars(os.environ["DATABASE_URL"]), engine="django_cockroachdb"
+# )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ["POSTGRES_DB"],
+        'USER': os.environ["POSTGRES_USER"],
+        'PASSWORD': os.environ["POSTGRES_PASSWORD"],
+        'HOST': os.environ["POSTGRES_HOST"],
+        'PORT': os.environ["POSTGRES_PORT"],
+    }
+}
+
+
 
 # Configure caches from cache url
 CACHES = {"default": django_cache_url.config()}

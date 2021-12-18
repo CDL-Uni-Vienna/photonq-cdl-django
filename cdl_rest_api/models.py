@@ -154,11 +154,17 @@ class Experiment(ExperimentBase):
     Contains additional fields set by the server with ExperimentBase
     as parent class
     """
-
+    statusChoices = (
+        ("INITIAL", "Initial"),
+        ("IN QUEUE", "In Queue"),
+        ("RUNNING", "Running"),
+        ("FAILED", "Failed"),
+        ("DONE", "Done")
+    )
     experimentId = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-    status = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=255, choices=statusChoices, null=True, blank=True)
     # a user can have multiple Experiments
     # currently only implemented in Experiment and not in Results
     # as Result is assigned to Experiment (can be changed later to

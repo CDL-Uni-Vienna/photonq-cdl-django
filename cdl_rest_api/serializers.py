@@ -106,8 +106,8 @@ class ExperimentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.email")
     experimentId = serializers.ReadOnlyField()
 
-    choices = ["IN QUEUE", "RUNNING", "FAILED", "DONE"]
-    status = serializers.ChoiceField(choices)
+    # choices = ["IN QUEUE", "RUNNING", "FAILED", "DONE"]
+    # status = serializers.ChoiceField(choices)
 
     def create(self, validated_data):
         computeSettingsData = validated_data.pop("ComputeSettings")

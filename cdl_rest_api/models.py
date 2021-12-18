@@ -10,10 +10,12 @@ import uuid
 
 class QubitMeasurementItem(models.Model):
     """
-    This model represents the Qubit Measurement Settings according to
-    projection in complex plane
+    Represents the Qubit Measurement Settings and contains values for
+    projection onto the computational basis |0> and |1>:
+    |psi> = cos(theta)|0> + exp(i*phi)|1>
     """
 
+    # Qubit Index
     encodedQubitIndex = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
@@ -21,6 +23,8 @@ class QubitMeasurementItem(models.Model):
         blank=True,
         null=True,
     )
+
+    # angle theta
     theta = models.DecimalField(
         validators=[
             MinValueValidator(0),
@@ -31,6 +35,8 @@ class QubitMeasurementItem(models.Model):
         blank=True,
         null=True,
     )
+
+    # angle phi
     phi = models.DecimalField(
         validators=[
             MinValueValidator(0),
@@ -41,22 +47,32 @@ class QubitMeasurementItem(models.Model):
         blank=True,
         null=True,
     )
+
+    # QubitMeasurementItem is related to ComputeSettings
+    # One 'ComputeSetting' is related to multiple QubitMeasurementItems
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",
         # CASCADE? ComputeSettings should'nt be deleted when
         # encodedQubitMeasurements Item is deleted
+        # Set the ForeignKey null; this is only possible if null is True
         on_delete=models.SET_NULL,
         null=True,
+        # related_name specifies the name of the reverse relation from the
+        # ComputeSettings model back to QubitMeasurementItem model,
+        # i.e. specifies how field is named in ForeignKey model
         related_name="encodedQubitMeasurements",
     )
 
 
 class CircuitConfigurationItem(models.Model):
     """
-    This model contains the name and value of the abstract circuit angles
+    Contains names and values for abstract circuit gate operations
+    R_z(circuitAngleName) = circuitAngleValue
     """
 
+    # specifies the name of the angle, e.g. "alpha"
     circuitAngleName = models.CharField(max_length=255)
+    # specifies the value of the angle
     circuitAngleValue = models.DecimalField(
         validators=[
             MinValueValidator(0),
@@ -65,6 +81,9 @@ class CircuitConfigurationItem(models.Model):
         decimal_places=3,
         max_digits=6,
     )
+    # relates gate operations to qubitComputing model which contains an array
+    # of CircuitConfigurationItems in related name field "circuitAngles" as
+    # well as the circuitConfiguration implied by the cluster, "horseshoe" etc.
     qubitComputing = models.ForeignKey(
         "qubitComputing",
         on_delete=models.SET_NULL,
@@ -75,7 +94,7 @@ class CircuitConfigurationItem(models.Model):
 
 class clusterState(models.Model):
     """
-    This model defines the number of qubits and shape of the cluster
+    Defines the number of physical qubits and shape of the cluster
     """
 
     amountQubits = models.PositiveIntegerField(
@@ -84,29 +103,45 @@ class clusterState(models.Model):
             MaxValueValidator(4),
         ]
     )
+    # defines the cluster state e.g. "linear" or "ghz" and is validated against
+    # choices in serializer
     presetSettings = models.CharField(max_length=255)
 
 
 class qubitComputing(models.Model):
     """
-    qubitComputing has 1 field: circuitConfiguration is
-    and 1 array: circuitAngles
+    Combines all abstract circuit settings and has two fields:
+
+    cirucitConfiguration: is defined below in the model
+
+    circuitAngles: is an array of CircuitConfigurationItem objects
+    which is handled in the qubitComputingSerializer
     """
 
-    # array is handled in serializer
+    # the circuitConfiguration implied by the cluster, "horseshoe" etc.
+    # choices are handles in the qubitComputingSerializer
     circuitConfiguration = models.CharField(max_length=255)
 
 
 class ComputeSettings(models.Model):
     """
-    Contains qubitComputing and clusterState
+    Combines all parameters relevant for computation and has three fields:
+
+    clusterState: specified below in the model
+
+    qubitComputing: specified below in the model
+
+    encodedQubitMeasurements: is an array of QubitMeasurementItem objects
+    which is handled in the ComputeSettingsSerializer
     """
 
+    # defined by clusterState model
     clusterState = models.ForeignKey(
         "clusterState",
         on_delete=models.SET_NULL,
         null=True,
     )
+    # consists of enum field and array which are handled in ComputeSettingsSerializer
     qubitComputing = models.ForeignKey(
         "qubitComputing",
         on_delete=models.SET_NULL,
@@ -119,19 +154,23 @@ class ExperimentBase(models.Model):
     Contains all fields of an Experiment that can be specified by the user
     """
 
+    # the user can give a name to the experiment
     experimentName = models.CharField(max_length=255)
+    # the circuit ID is defined by the choice of the geometry of the cluster
+    # and identifies the corresponding circuit in the backend
     circuitId = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
             MaxValueValidator(22),
         ],
     )
+    # the user can associate a project ID to the experiment
     projectId = models.CharField(
         max_length=255,
         blank=True,
         null=True,
     )
-    # Users can specifiy how long they will use the system
+    # users can specifiy how long they will use the system
     maxRuntime = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
@@ -142,6 +181,7 @@ class ExperimentBase(models.Model):
         # set default Runtime to 5 seconds
         default=5,
     )
+    # ExperimentBase model contains an entire ComputeSettings object
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",
         on_delete=models.SET_NULL,
@@ -151,24 +191,30 @@ class ExperimentBase(models.Model):
 
 class Experiment(ExperimentBase):
     """
-    Contains additional fields set by the server with ExperimentBase
+    Defines additional fields set by the server with ExperimentBase
     as parent class
     """
+
+    # specifies possible values for status field
     statusChoices = (
         ("INITIAL", "Initial"),
         ("IN QUEUE", "In Queue"),
         ("RUNNING", "Running"),
         ("FAILED", "Failed"),
-        ("DONE", "Done")
+        ("DONE", "Done"),
     )
+    # experiment ID is set by the server
     experimentId = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-    status = models.CharField(max_length=255, choices=statusChoices, null=True, blank=True)
-    # a user can have multiple Experiments
-    # currently only implemented in Experiment and not in Results
-    # as Result is assigned to Experiment (can be changed later to
-    # assign to user)
+
+    status = models.CharField(
+        max_length=255, choices=statusChoices, null=True, blank=True
+    )
+    # Relates an Experiment object to a user, who can have multiple Experiments.
+    # Currently this only implemented in Experiment and not in Results as
+    # Result is related to an Experiment (this can be changed later to
+    # assign Results to user if needed).
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

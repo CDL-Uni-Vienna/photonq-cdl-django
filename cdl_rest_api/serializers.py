@@ -6,7 +6,9 @@ from cdl_rest_api import models
 
 
 class QubitMeasurementItemSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for the QubitMeasurementItem
+    """
 
     class Meta:
         model = models.QubitMeasurementItem
@@ -14,7 +16,9 @@ class QubitMeasurementItemSerializer(serializers.ModelSerializer):
 
 
 class CircuitConfigurationItemSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for the CircuitConfigruationItem
+    """
 
     class Meta:
         model = models.CircuitConfigurationItem
@@ -22,7 +26,9 @@ class CircuitConfigurationItemSerializer(serializers.ModelSerializer):
 
 
 class clusterStateSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for the clusterState model
+    """
 
     choices = ["linear", "ghz"]
     presetSettings = serializers.ChoiceField(choices)

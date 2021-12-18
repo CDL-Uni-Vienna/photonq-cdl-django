@@ -49,7 +49,8 @@ class QubitMeasurementItem(models.Model):
     )
 
     # QubitMeasurementItem is related to ComputeSettings
-    # One 'ComputeSetting' is related to multiple QubitMeasurementItems
+    # ComputeSettings object contains an array of QubitMeasurementItems in the
+    # field named encodedQubitMeasurements
     ComputeSettings = models.ForeignKey(
         "ComputeSettings",
         # CASCADE? ComputeSettings should'nt be deleted when

@@ -7,6 +7,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 import uuid
 
+from django.db.models.base import Model
+from django.db.models.fields import CharField, IntegerField
+
 
 class QubitMeasurementItem(models.Model):
     """
@@ -195,7 +198,7 @@ class Experiment(ExperimentBase):
     Defines additional fields set by the server with ExperimentBase
     as parent class
     """
-    
+
     # specifies possible values for status field
     statusChoices = (
         ("INITIAL", "Initial"),
@@ -221,7 +224,7 @@ class Experiment(ExperimentBase):
         on_delete=models.SET_NULL,
         null=True,
     )
-    
+
 
 class ExperimentResult(models.Model):
     """
@@ -247,12 +250,44 @@ class ExperimentResult(models.Model):
         blank=True,
         null=True,
     )
+    experimentData = models.ForeignKey(
+        "ExperimentData", on_delete=models.SET_NULL, blank=True, null=True)
+
+
+class Countrates(models.Model):
+    """ """
+    d1 = models.PositiveIntegerField(null=True, blank=True)
+    d2 = models.PositiveIntegerField(null=True, blank=True)
+    d3 = models.PositiveIntegerField(null=True, blank=True)
+    d4 = models.PositiveIntegerField(null=True, blank=True)
+    d5 = models.PositiveIntegerField(null=True, blank=True)
+    d6 = models.PositiveIntegerField(null=True, blank=True)
+    d7 = models.PositiveIntegerField(null=True, blank=True)
+    d8 = models.PositiveIntegerField(null=True, blank=True)
+
+
+class Coincidences(models.Model):
+    """ """
+    c00 = models.FloatField(null=True, blank=True)
+    c10 = models.FloatField(null=True, blank=True)
+    c01 = models.FloatField(null=True, blank=True)
+    c11 = models.FloatField(null=True, blank=True)
+
+
+class ExperimentData(models.Model):
+    """ """
+    countratePerDetector = models.ForeignKey(
+        "Countrates", on_delete=models.SET_NULL, blank=True, null=True)
+    encodedQubitMeasurements = models.ForeignKey(
+        "Coincidences", on_delete=models.SET_NULL, blank=True, null=True)
 
 
 # User Manager class tells Django how to work with the customized
 # user model in CLI. By default when a user is created it expects
 # a username and a password field but the username field has been
 # replaceed with an email field so a custom User Manager is needed.
+
+
 class UserProfileManager(BaseUserManager):
     """
     Manager for user profiles with BaseUserManager as parent class.

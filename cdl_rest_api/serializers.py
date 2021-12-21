@@ -82,7 +82,8 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """ """
-        encodedQubitMeasurementsData = validated_data.pop("encodedQubitMeasurements")
+        encodedQubitMeasurementsData = validated_data.pop(
+            "encodedQubitMeasurements")
         qubitComputingData = validated_data.pop("qubitComputing")
         serializer = qubitComputingSerializer(data=qubitComputingData)
         serializer.is_valid()
@@ -148,13 +149,69 @@ class ExperimentSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class CountratesSerializer(serializers.ModelSerializer):
+    """ """
+    class Meta:
+        model = models.Countrates
+        fields = ("d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8")
+
+
+class CoincidencesSerializer(serializers.ModelSerializer):
+    """ """
+    class Meta:
+        model = models.Coincidences
+        fields = ("c00", "c01", "c10", "c11")
+
+
+class ExperimentDataSerializer(serializers.ModelSerializer):
+    """ """
+    countratePerDetector = CountratesSerializer()
+    encodedQubitMeasurements = CoincidencesSerializer()
+
+    def create(self, validated_data):
+        """ """
+
+        countratesData = validated_data.pop("countratePerDetector")
+        serializer = CountratesSerializer(data=countratesData)
+        serializer.is_valid()
+        countrates = serializer.save()
+        coincidencesData = validated_data.pop("encodedQubitMeasurements")
+        coincidences = models.Coincidences.objects.create(**coincidencesData)
+        ExperimentData = models.ExperimentData.objects.create(
+            countratePerDetector=countrates, encodedQubitMeasurements=coincidences
+        )
+
+        return ExperimentData
+
+    class Meta:
+        model = models.ExperimentData
+        fields = ("countratePerDetector", "encodedQubitMeasurements")
+        # return entire object of ForeignKey assignment not just id
+        depth = 1
+
+
 class ExperimentResultSerializer(serializers.ModelSerializer):
     """ """
+    experimentData = ExperimentDataSerializer()
 
-    # check if startTime is readonly
+    def create(self, validated_data):
+        experimentData = validated_data.pop("experimentData")
+        # codes lines reversed compared to above
+        # Foreign Key is in Experiment, not ComputeSettings
+        # 1 Experiment has 1 Compute Setting
+        serializer = ExperimentDataSerializer(data=experimentData)
+        serializer.is_valid()
+        # print(serializer.errors)
+        experimentData = serializer.save()
+        Experiment = models.ExperimentResult.objects.create(
+            experimentData=experimentData, **validated_data
+        )
+        return Experiment
+
     class Meta:
         model = models.ExperimentResult
-        fields = "__all__"
+        fields = ("experiment", "startTime", "totalCounts",
+                  "numberOfDetectors", "singlePhotonRate", "totalTime", "experimentData")
 
 
 # User Serializer

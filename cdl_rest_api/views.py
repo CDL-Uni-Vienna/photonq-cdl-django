@@ -47,9 +47,9 @@ class ExperimentDetailView(APIView):
                     if models.ExperimentResult.objects.filter(
                         experiment=experiment
                     ).exists():
-                        experimentResult = models.ExperimentResult.objects.get(
+                        experimentResult = models.ExperimentResult.objects.filter(
                             experiment=experiment
-                        )
+                        ).last()
                 else:
                     return Response(
                         "An Experiment with the specified ID was not found.",
@@ -239,6 +239,26 @@ class ExperimentQueueView(generics.RetrieveUpdateAPIView):
         queryset = models.Experiment.objects.filter(status="IN QUEUE").first()
         serializer = serializers.ExperimentSerializer(queryset, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ExperimentDataView(generics.RetrieveAPIView):
+    """ """
+
+    def retrieve(self, request, experiment_id):
+        if models.Experiment.objects.filter(
+            experimentId=experiment_id
+        ).exists():
+            queryset = models.Experiment.objects.filter(
+                experimentId=experiment_id
+            )
+            serializer = serializers.ExperimentDataSerializer(
+                queryset, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                "An Experiment with the specified ID was not found.",
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 # only needs to handle create-request from admin

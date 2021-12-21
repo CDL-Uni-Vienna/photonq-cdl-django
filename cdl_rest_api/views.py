@@ -68,9 +68,9 @@ class ExperimentDetailView(APIView):
                     if models.ExperimentResult.objects.filter(
                         experiment=experiment
                     ).exists():
-                        experimentResult = models.ExperimentResult.objects.get(
+                        experimentResult = models.ExperimentResult.objects.filter(
                             experiment=experiment
-                        )
+                        ).last()
                 else:
                     return Response(
                         "An Experiment with the specified ID was not found or does not belong to the current user.",
@@ -85,7 +85,7 @@ class ExperimentDetailView(APIView):
                 experiment_serializer = serializers.ExperimentSerializer(
                     experiment,
                 )
-                result_serializer = serializers.ExperimentResultSerializer(
+                result_serializer = serializers.ExperimentResultGetSerializer(
                     experimentResult,
                 )
 
@@ -226,6 +226,179 @@ class ExperimentListView(generics.ListCreateAPIView):
             return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
 
 
+class ExperimentResultView(APIView):
+    """ """
+
+    permission_classes = (IsAuthenticated,)
+    # serializers_class = serializers.ExperimentSerializer
+
+    def get(self, request, experiment_id):
+        """ """
+        experiment = None
+        experimentResult = None
+        if experiment_id is not None:
+            if request.user.is_staff:
+                if models.Experiment.objects.filter(
+                    experimentId=experiment_id
+                ).exists():
+                    # get targets experiment_id specified in URL
+                    # not JSON id, or Project ID
+                    experiment = models.Experiment.objects.get(
+                        experimentId=experiment_id
+                    )
+                    # if ExperimentResult exists, else remains None
+                    if models.ExperimentResult.objects.filter(
+                        experiment=experiment
+                    ).exists():
+                        experimentResult = models.ExperimentResult.objects.filter(
+                            experiment=experiment
+                        ).last()
+                else:
+                    return Response(
+                        "An Experiment with the specified ID was not found.",
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+            # if enduser
+            else:
+                if models.Experiment.objects.filter(
+                    experimentId=experiment_id,
+                    # filter also: Experiment belongs to user
+                    user=request.user,
+                ).exists():
+                    experiment = models.Experiment.objects.get(
+                        experimentId=experiment_id,
+                    )
+                    if models.ExperimentResult.objects.filter(
+                        experiment=experiment
+                    ).exists():
+                        experimentResult = models.ExperimentResult.objects.filter(
+                            experiment=experiment
+                        ).last()
+                else:
+                    return Response(
+                        "An Experiment with the specified ID was not found or does not belong to the current user.",
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+        # this is an if statement independent from the one above
+        # logic returns required status messages according to api specs
+        # print(experiment)
+        if experiment is not None:
+            if experimentResult is not None:
+                experiment_serializer = serializers.ExperimentSerializer(
+                    experiment,
+                )
+                result_serializer = serializers.ExperimentResultPostSerializer(
+                    experimentResult,
+                )
+
+                # print(experiment_serializer.data)
+                return Response(result_serializer.data,
+                                # {
+                                #     "experimentConfiguration": experiment_serializer.data,
+                                #     "experimentResult": result_serializer.data,
+                                # },
+                                status=status.HTTP_200_OK,
+                                )
+
+            else:
+                experiment_serializer = serializers.ExperimentSerializer(
+                    experiment,
+                )
+                # experiment_serializer.is_valid()
+                # print(experiment_serializer.data)
+                return Response(
+                    # {
+                    #     "experimentConfiguration": experiment_serializer.data,
+                    # },
+                    experiment_serializer.data,
+                    status=status.HTTP_200_OK,
+                )
+        else:
+            # logic should not allow for this error to occur
+            return Response(
+                "Unexpected error.",
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    # use patch to update status of experiment object
+    # alternative: generic view + permission class isAdmin, but requires additional
+    # endpoint, plus for GET this is not possiblle due to more complex logic
+    def patch(self, request, experiment_id):
+        """ """
+        if request.user.is_staff:
+            if models.Experiment.objects.filter(experimentId=experiment_id).exists():
+                experiment = models.Experiment.objects.get(
+                    experimentId=experiment_id)
+            else:
+                return Response(
+                    "An Experiment with the specified ID was not found.",
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            serializer = serializers.ExperimentSerializer(
+                # Need experiment to overwrite, if experiment was missing
+                # method would fail due to missing required fields.
+                # Convert experiment from db to JSON and merge fields from data.
+                experiment,
+                data=request.data,
+                partial=True,
+            )
+            # If the merged JSON is valid
+            if serializer.is_valid():
+                serializer.save()
+                # print(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response("Not allowed.", status=status.HTTP_403_FORBIDDEN)
+
+    def delete(self, request, experiment_id):
+        """ """
+
+        if experiment_id is not None:
+            if request.user.is_staff:
+                if models.Experiment.objects.filter(
+                    experimentId=experiment_id
+                ).exists():
+                    models.Experiment.objects.filter(
+                        experimentId=experiment_id
+                    ).delete()
+                    return Response(
+                        "OK - Experiment deleted successfully.",
+                        status=status.HTTP_204_NO_CONTENT,
+                    )
+                else:
+                    return Response(
+                        "An Experiment with the specified ID was not found.",
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+            else:
+                if models.Experiment.objects.filter(
+                    experimentId=experiment_id,
+                    user=request.user,
+                ).exists():
+                    models.Experiment.objects.filter(
+                        experimentId=experiment_id
+                    ).delete()
+                    return Response(
+                        "OK - Experiment deleted successfully.",
+                        status=status.HTTP_204_NO_CONTENT,
+                    )
+                else:
+                    return Response(
+                        "An Experiment with the specified ID was not found or does not belong to the current user.",
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+        # 401 Authorization information is missing or invalid. is authomatically
+        # handled with Django
+        else:
+            return Response(
+                "Unexpected error.",
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class ExperimentQueueView(generics.RetrieveUpdateAPIView):
     """ """
 
@@ -236,6 +409,7 @@ class ExperimentQueueView(generics.RetrieveUpdateAPIView):
     ]
 
     def retrieve(self, request):
+        # if no object with status "IN QUEUE" exists returns null fields
         queryset = models.Experiment.objects.filter(status="IN QUEUE").first()
         serializer = serializers.ExperimentSerializer(queryset, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -264,15 +438,15 @@ class ExperimentDataView(generics.RetrieveAPIView):
 # only needs to handle create-request from admin
 class ResultView(generics.ListCreateAPIView):
     queryset = models.ExperimentResult.objects.all()
-    serializer_class = serializers.ExperimentResultSerializer
+    serializer_class = serializers.ExperimentResultPostSerializer
     permission_classes = [
         IsAdminUser,
     ]
 
 
-class ResultDetailView(generics.RetrieveAPIView):
+class ResultDetailView(generics.RetrieveDestroyAPIView):
     queryset = models.ExperimentResult.objects.all()
-    serializer_class = serializers.ExperimentResultSerializer
+    serializer_class = serializers.ExperimentResultPostSerializer
     permission_classes = [
         IsAdminUser,
     ]

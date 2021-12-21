@@ -190,7 +190,7 @@ class ExperimentDataSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-class ExperimentResultSerializer(serializers.ModelSerializer):
+class ExperimentResultPostSerializer(serializers.ModelSerializer):
     """ """
     experimentData = ExperimentDataSerializer()
 
@@ -214,7 +214,32 @@ class ExperimentResultSerializer(serializers.ModelSerializer):
                   "numberOfDetectors", "singlePhotonRate", "totalTime", "experimentData")
 
 
+class ExperimentResultGetSerializer(serializers.ModelSerializer):
+    """ """
+    #experimentData = ExperimentDataSerializer()
+
+    def create(self, validated_data):
+        experimentData = validated_data.pop("experimentData")
+        # codes lines reversed compared to above
+        # Foreign Key is in Experiment, not ComputeSettings
+        # 1 Experiment has 1 Compute Setting
+        serializer = ExperimentDataSerializer(data=experimentData)
+        serializer.is_valid()
+        # print(serializer.errors)
+        experimentData = serializer.save()
+        Experiment = models.ExperimentResult.objects.create(
+            experimentData=experimentData, **validated_data
+        )
+        return Experiment
+
+    class Meta:
+        model = models.ExperimentResult
+        fields = ("experiment", "startTime", "totalCounts",
+                  "numberOfDetectors", "singlePhotonRate", "totalTime")  # , "experimentData")
+
 # User Serializer
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializes a user profile object"""
 

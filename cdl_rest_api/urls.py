@@ -20,4 +20,6 @@ urlpatterns = [
     path("update/<int:pk>", views.UserUpdateView.as_view()),
     path("results", views.ResultView.as_view()),
     path("results/<int:pk>", views.ResultDetailView.as_view()),
+    path("experiments/<slug:experiment_id>/results",
+         views.ExperimentResultView.as_view()),
 ]

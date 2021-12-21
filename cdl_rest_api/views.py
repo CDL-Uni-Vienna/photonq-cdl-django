@@ -125,7 +125,8 @@ class ExperimentDetailView(APIView):
         """ """
         if request.user.is_staff:
             if models.Experiment.objects.filter(experimentId=experiment_id).exists():
-                experiment = models.Experiment.objects.get(experimentId=experiment_id)
+                experiment = models.Experiment.objects.get(
+                    experimentId=experiment_id)
             else:
                 return Response(
                     "An Experiment with the specified ID was not found.",
@@ -223,6 +224,21 @@ class ExperimentListView(generics.ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
+
+
+class ExperimentQueueView(generics.RetrieveUpdateAPIView):
+    """ """
+
+    queryset = models.Experiment.objects.filter(status="IN QUEUE")
+    serializer_class = serializers.ExperimentSerializer
+    permission_classes = [
+        IsAdminUser,
+    ]
+
+    def retrieve(self, request):
+        queryset = models.Experiment.objects.filter(status="IN QUEUE").first()
+        serializer = serializers.ExperimentSerializer(queryset, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # only needs to handle create-request from admin

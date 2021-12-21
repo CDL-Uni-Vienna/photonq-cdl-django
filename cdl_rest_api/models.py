@@ -195,7 +195,7 @@ class Experiment(ExperimentBase):
     Defines additional fields set by the server with ExperimentBase
     as parent class
     """
-
+    
     # specifies possible values for status field
     statusChoices = (
         ("INITIAL", "Initial"),
@@ -208,7 +208,7 @@ class Experiment(ExperimentBase):
     experimentId = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-
+    created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=255, choices=statusChoices, null=True, blank=True
     )
@@ -221,13 +221,13 @@ class Experiment(ExperimentBase):
         on_delete=models.SET_NULL,
         null=True,
     )
-
+    
 
 class ExperimentResult(models.Model):
     """
     This model defines a Result to a corresponding Experiment
     """
-
+    # time stamp needed ? time stamp already available in Experiment model
     startTime = models.DateTimeField(auto_now_add=True)
     totalCounts = models.PositiveIntegerField()
     numberOfDetectors = models.PositiveIntegerField(

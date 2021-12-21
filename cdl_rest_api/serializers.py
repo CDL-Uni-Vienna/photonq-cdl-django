@@ -137,6 +137,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
             # object Experiment has no Database ID
             "user",
             "status",
+            "created",
             "experimentName",
             "projectId",
             "maxRuntime",

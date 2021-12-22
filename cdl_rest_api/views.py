@@ -217,9 +217,13 @@ class ExperimentListView(generics.ListCreateAPIView):
     # need to overwrite create to save user to experiment
     # user=request.user is what the standard method doesn't do
     def create(self, request):
-        serializer = serializers.ExperimentSerializer(data=request.data)
+        data = request.data
+        data["status"] = "IN QUEUE"
+        serializer = serializers.ExperimentSerializer(data=data)
+        # print(request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
+            # serializer.update(status="IN QUEUE")
             # print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:

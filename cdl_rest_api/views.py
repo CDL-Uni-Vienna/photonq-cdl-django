@@ -5,15 +5,11 @@ from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response  # Standard Response object
 from rest_framework import status
-
 from rest_framework import generics
-
-
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
 # from rest_framework.settings import api_settings
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
-
 
 from knox.views import LoginView as KnoxLoginView
 
@@ -22,19 +18,26 @@ from cdl_rest_api import models
 from cdl_rest_api.permissions import UpdateOwnProfile
 
 
-# instead of check for primarykey we create multiple endpoints
+# Multiple endpoints for detail view and list view
+# Alternative: implement primary key in one endpoint logic
 class ExperimentDetailView(APIView):
-    """ """
+    """
+    This View returns one Experiment model with pk = experiment_id
+    """
 
     permission_classes = (IsAuthenticated,)
     # serializers_class = serializers.ExperimentSerializer
 
     def get(self, request, experiment_id):
-        """ """
+        """
+        GET function for ExperimentDetailView
+        """
+
         experiment = None
         experimentResult = None
         if experiment_id is not None:
             if request.user.is_staff:
+                # if Experiment exists, else remain None
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
@@ -43,11 +46,14 @@ class ExperimentDetailView(APIView):
                     experiment = models.Experiment.objects.get(
                         experimentId=experiment_id
                     )
-                    # if ExperimentResult exists, else remains None
+                    # if Experiment Result for Experiment exists
                     if models.ExperimentResult.objects.filter(
                         experiment=experiment
                     ).exists():
+                        # one Experiment can have multiple results, and only
+                        # the latest is returned in the view response
                         experimentResult = models.ExperimentResult.objects.filter(
+                            # experiment is a ForeignKey in ExperimentResult model
                             experiment=experiment
                         ).last()
                 else:
@@ -59,7 +65,7 @@ class ExperimentDetailView(APIView):
             else:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id,
-                    # filter also: Experiment belongs to user
+                    # additional filter: Experiment belongs to user
                     user=request.user,
                 ).exists():
                     experiment = models.Experiment.objects.get(
@@ -77,9 +83,8 @@ class ExperimentDetailView(APIView):
                         status=status.HTTP_404_NOT_FOUND,
                     )
 
-        # this is an if statement independent from the one above
+        # this is an if statement independent from the one above:
         # logic returns required status messages according to api specs
-        # print(experiment)
         if experiment is not None:
             if experimentResult is not None:
                 experiment_serializer = serializers.ExperimentSerializer(
@@ -105,9 +110,6 @@ class ExperimentDetailView(APIView):
                 # experiment_serializer.is_valid()
                 # print(experiment_serializer.data)
                 return Response(
-                    # {
-                    #     "experimentConfiguration": experiment_serializer.data,
-                    # },
                     experiment_serializer.data,
                     status=status.HTTP_200_OK,
                 )
@@ -118,15 +120,17 @@ class ExperimentDetailView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    # use patch to update status of experiment object
+    # use patch to update status field of experiment object
     # alternative: generic view + permission class isAdmin, but requires additional
-    # endpoint, plus for GET this is not possiblle due to more complex logic
+    # endpoint, plus for GET this is hard to implement due to complex logic for GET
     def patch(self, request, experiment_id):
-        """ """
+        """
+        PATCH function for ExperimentDetailView
+        """
+
         if request.user.is_staff:
             if models.Experiment.objects.filter(experimentId=experiment_id).exists():
-                experiment = models.Experiment.objects.get(
-                    experimentId=experiment_id)
+                experiment = models.Experiment.objects.get(experimentId=experiment_id)
             else:
                 return Response(
                     "An Experiment with the specified ID was not found.",
@@ -140,7 +144,7 @@ class ExperimentDetailView(APIView):
                 data=request.data,
                 partial=True,
             )
-            # If the merged JSON is valid
+            # if the merged JSON is valid
             if serializer.is_valid():
                 serializer.save()
                 # print(serializer.data)
@@ -151,7 +155,9 @@ class ExperimentDetailView(APIView):
             return Response("Not allowed.", status=status.HTTP_403_FORBIDDEN)
 
     def delete(self, request, experiment_id):
-        """ """
+        """
+        DELETE function for ExperimentDetailView
+        """
 
         if experiment_id is not None:
             if request.user.is_staff:
@@ -187,7 +193,7 @@ class ExperimentDetailView(APIView):
                         "An Experiment with the specified ID was not found or does not belong to the current user.",
                         status=status.HTTP_404_NOT_FOUND,
                     )
-        # 401 Authorization information is missing or invalid. is authomatically
+        # 401 Authorization information is missing or invalid is authomatically
         # handled with Django
         else:
             return Response(
@@ -218,12 +224,14 @@ class ExperimentListView(generics.ListCreateAPIView):
     # user=request.user is what the standard method doesn't do
     def create(self, request):
         data = request.data
+        # overwrites status field in view
+        # cleaner alternative: set default in model
+        # leave for now
         data["status"] = "IN QUEUE"
         serializer = serializers.ExperimentSerializer(data=data)
         # print(request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
-            # serializer.update(status="IN QUEUE")
             # print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -297,13 +305,14 @@ class ExperimentResultView(APIView):
                 )
 
                 # print(experiment_serializer.data)
-                return Response(result_serializer.data,
-                                # {
-                                #     "experimentConfiguration": experiment_serializer.data,
-                                #     "experimentResult": result_serializer.data,
-                                # },
-                                status=status.HTTP_200_OK,
-                                )
+                return Response(
+                    result_serializer.data,
+                    # {
+                    #     "experimentConfiguration": experiment_serializer.data,
+                    #     "experimentResult": result_serializer.data,
+                    # },
+                    status=status.HTTP_200_OK,
+                )
 
             else:
                 experiment_serializer = serializers.ExperimentSerializer(
@@ -332,8 +341,7 @@ class ExperimentResultView(APIView):
         """ """
         if request.user.is_staff:
             if models.Experiment.objects.filter(experimentId=experiment_id).exists():
-                experiment = models.Experiment.objects.get(
-                    experimentId=experiment_id)
+                experiment = models.Experiment.objects.get(experimentId=experiment_id)
             else:
                 return Response(
                     "An Experiment with the specified ID was not found.",
@@ -359,7 +367,7 @@ class ExperimentResultView(APIView):
 
     def delete(self, request, experiment_id):
         """ """
-
+        # this Endpoint still needs to be adjusted to Result
         if experiment_id is not None:
             if request.user.is_staff:
                 if models.Experiment.objects.filter(
@@ -423,14 +431,9 @@ class ExperimentDataView(generics.RetrieveAPIView):
     """ """
 
     def retrieve(self, request, experiment_id):
-        if models.Experiment.objects.filter(
-            experimentId=experiment_id
-        ).exists():
-            queryset = models.Experiment.objects.filter(
-                experimentId=experiment_id
-            )
-            serializer = serializers.ExperimentDataSerializer(
-                queryset, many=False)
+        if models.Experiment.objects.filter(experimentId=experiment_id).exists():
+            queryset = models.Experiment.objects.filter(experimentId=experiment_id)
+            serializer = serializers.ExperimentDataSerializer(queryset, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(

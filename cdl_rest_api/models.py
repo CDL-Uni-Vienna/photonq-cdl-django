@@ -230,6 +230,7 @@ class ExperimentResult(models.Model):
     """
     This model defines a Result to a corresponding Experiment
     """
+
     # time stamp needed ? time stamp already available in Experiment model
     startTime = models.DateTimeField(auto_now_add=True)
     totalCounts = models.PositiveIntegerField()
@@ -251,11 +252,15 @@ class ExperimentResult(models.Model):
         null=True,
     )
     experimentData = models.ForeignKey(
-        "ExperimentData", on_delete=models.SET_NULL, blank=True, null=True)
+        "ExperimentData", on_delete=models.SET_NULL, blank=True, null=True
+    )
 
 
 class Countrates(models.Model):
-    """ """
+    """
+    This model stores the countrates from the TimeTagger for each channel
+    """
+
     d1 = models.PositiveIntegerField(null=True, blank=True)
     d2 = models.PositiveIntegerField(null=True, blank=True)
     d3 = models.PositiveIntegerField(null=True, blank=True)
@@ -267,7 +272,10 @@ class Countrates(models.Model):
 
 
 class Coincidences(models.Model):
-    """ """
+    """
+    This model stores the coincidence counts for two channels
+    """
+
     c00 = models.FloatField(null=True, blank=True)
     c10 = models.FloatField(null=True, blank=True)
     c01 = models.FloatField(null=True, blank=True)
@@ -275,11 +283,16 @@ class Coincidences(models.Model):
 
 
 class ExperimentData(models.Model):
-    """ """
+    """
+    This model stores the experimental data
+    """
+
     countratePerDetector = models.ForeignKey(
-        "Countrates", on_delete=models.SET_NULL, blank=True, null=True)
+        "Countrates", on_delete=models.SET_NULL, blank=True, null=True
+    )
     encodedQubitMeasurements = models.ForeignKey(
-        "Coincidences", on_delete=models.SET_NULL, blank=True, null=True)
+        "Coincidences", on_delete=models.SET_NULL, blank=True, null=True
+    )
 
 
 # User Manager class tells Django how to work with the customized

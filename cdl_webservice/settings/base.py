@@ -53,9 +53,13 @@ INSTALLED_APPS = [
     "cdl_rest_api",
     # BIFROST
     "bifrost",
+    # CORS headers
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -190,4 +194,11 @@ BIFROST_APPS = {
     "cdl_rest_api": "",
 }
 
-APPEND_SLASH=False
+APPEND_SLASH = False
+
+CORS_ALLOWED_ORIGINS = [
+    "https://photonq.at",
+    "https://quco.exp.univie.ac.at",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]

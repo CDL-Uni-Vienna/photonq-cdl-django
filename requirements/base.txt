@@ -3,4 +3,4 @@ wagtail==2.11.8
 djangorestframework==3.12.4
 wagtail-bifrost==3.0.1
 django-rest-knox==4.1.0
-django-corse-headers==3.11
+django-cors-headers==3.11

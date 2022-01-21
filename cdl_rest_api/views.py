@@ -22,7 +22,7 @@ from cdl_rest_api.permissions import UpdateOwnProfile
 # Alternative: implement primary key in one endpoint logic
 class ExperimentDetailView(APIView):
     """
-    This View returns one Experiment model with pk = experiment_id
+    This View returns one Experiment object with pk = experiment_id
     """
 
     permission_classes = (IsAuthenticated,)
@@ -152,7 +152,10 @@ class ExperimentDetailView(APIView):
             return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
 
         else:
-            return Response("Not allowed.", status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                "Please authenticate as admin user to update ExperimentResult objects.",
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
     def delete(self, request, experiment_id):
         """
@@ -195,6 +198,7 @@ class ExperimentDetailView(APIView):
                     )
         # 401 Authorization information is missing or invalid is authomatically
         # handled with Django
+        # TO DO: is this the right response here?
         else:
             return Response(
                 "Unexpected error.",
@@ -203,8 +207,14 @@ class ExperimentDetailView(APIView):
 
 
 class ExperimentListView(generics.ListCreateAPIView):
-    """ """
+    """
+    This view returns all existing Experiment objects to the super user
+    and all Experiments that belong to the authenticated user for end user
+    """
 
+    # a QuerySet can be constructed, filtered, sliced, and generally passed
+    # around without actually hitting the database. No database activity
+    # actually occurs until you do something to evaluate the queryset
     queryset = models.Experiment.objects.all()
     serializer_class = serializers.ExperimentSerializer
     permission_classes = [
@@ -239,22 +249,30 @@ class ExperimentListView(generics.ListCreateAPIView):
 
 
 class ExperimentResultView(APIView):
-    """ """
+    """
+    This view returns the latest ExperimentResult object for a given Experiment
+    and is logically equivalent to ExperimentDetailView
+    """
 
     permission_classes = (IsAuthenticated,)
     # serializers_class = serializers.ExperimentSerializer
 
     def get(self, request, experiment_id):
-        """ """
+        """
+        GET function for ExperimentResultView
+        """
         experiment = None
         experimentResult = None
         if experiment_id is not None:
+            # retrieve data from db and store in experiment and
+            # experimentResult variables:
+            # if staff user
             if request.user.is_staff:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
                     # get targets experiment_id specified in URL
-                    # not JSON id, or Project ID
+                    # not JSON id, or Project ID (see urls.py)
                     experiment = models.Experiment.objects.get(
                         experimentId=experiment_id
                     )
@@ -292,7 +310,8 @@ class ExperimentResultView(APIView):
                         status=status.HTTP_404_NOT_FOUND,
                     )
 
-        # this is an if statement independent from the one above
+        # this if statement is independent from the one above, and applies only
+        # if and experiment has been identified:
         # logic returns required status messages according to api specs
         # print(experiment)
         if experiment is not None:
@@ -313,7 +332,8 @@ class ExperimentResultView(APIView):
                     # },
                     status=status.HTTP_200_OK,
                 )
-
+            # TO DO: Here some more logic is needed: currently experiment
+            # object is returned in case no result is available
             else:
                 experiment_serializer = serializers.ExperimentSerializer(
                     experiment,
@@ -334,40 +354,13 @@ class ExperimentResultView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    # use patch to update status of experiment object
-    # alternative: generic view + permission class isAdmin, but requires additional
-    # endpoint, plus for GET this is not possiblle due to more complex logic
-    def patch(self, request, experiment_id):
-        """ """
-        if request.user.is_staff:
-            if models.Experiment.objects.filter(experimentId=experiment_id).exists():
-                experiment = models.Experiment.objects.get(experimentId=experiment_id)
-            else:
-                return Response(
-                    "An Experiment with the specified ID was not found.",
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-            serializer = serializers.ExperimentSerializer(
-                # Need experiment to overwrite, if experiment was missing
-                # method would fail due to missing required fields.
-                # Convert experiment from db to JSON and merge fields from data.
-                experiment,
-                data=request.data,
-                partial=True,
-            )
-            # If the merged JSON is valid
-            if serializer.is_valid():
-                serializer.save()
-                # print(serializer.data)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response("Invalid data.", status=status.HTTP_400_BAD_REQUEST)
-
-        else:
-            return Response("Not allowed.", status=status.HTTP_403_FORBIDDEN)
-
     def delete(self, request, experiment_id):
-        """ """
-        # this Endpoint still needs to be adjusted to Result
+        """
+        DELETE function for ExperimentResultView
+        """
+        # TO DO: this Endpoint still needs to be adjusted to Result
+        # currently user deletes Experiment not Result
+        # TO DO: check if obsolete due to ResultDetailView endpoint
         if experiment_id is not None:
             if request.user.is_staff:
                 if models.Experiment.objects.filter(
@@ -412,7 +405,9 @@ class ExperimentResultView(APIView):
 
 
 class ExperimentQueueView(generics.RetrieveUpdateAPIView):
-    """ """
+    """
+    This view returns the latest Experiment object in the queue
+    """
 
     queryset = models.Experiment.objects.filter(status="IN QUEUE")
     serializer_class = serializers.ExperimentSerializer
@@ -427,6 +422,7 @@ class ExperimentQueueView(generics.RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# TO DO: check if obsolete
 class ExperimentDataView(generics.RetrieveAPIView):
     """ """
 
@@ -444,6 +440,10 @@ class ExperimentDataView(generics.RetrieveAPIView):
 
 # only needs to handle create-request from admin
 class ResultView(generics.ListCreateAPIView):
+    """
+    This view enables admin user to post new results and all list existing results
+    """
+
     queryset = models.ExperimentResult.objects.all()
     serializer_class = serializers.ExperimentResultPostSerializer
     permission_classes = [
@@ -451,7 +451,10 @@ class ResultView(generics.ListCreateAPIView):
     ]
 
 
+# TO DO: check against delete function in ExperimentResultView
 class ResultDetailView(generics.RetrieveDestroyAPIView):
+    """ """
+
     queryset = models.ExperimentResult.objects.all()
     serializer_class = serializers.ExperimentResultPostSerializer
     permission_classes = [
@@ -460,12 +463,18 @@ class ResultDetailView(generics.RetrieveDestroyAPIView):
 
 
 class RegisterView(generics.CreateAPIView):
+    """
+    This view allows unauthenticated users to create a user profile
+    """
+
     queryset = models.UserProfile.objects.all()
     serializer_class = serializers.UserProfileSerializer
 
 
 class UserLoginApiView(KnoxLoginView):
-    """Handle creating user authentication tokens"""
+    """
+    Handle creating user authentication tokens
+    """
 
     # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
     permission_classes = (AllowAny,)
@@ -479,6 +488,8 @@ class UserLoginApiView(KnoxLoginView):
         userName = user.name
         # create session based auth with token auth
         login(request, user)
+        # super() method lets you access methods from a parent class from
+        # within a child class
         temp_list = super(UserLoginApiView, self).post(request, format=None)
         temp_list.data["id"] = userId
         temp_list.data["email"] = userEmail

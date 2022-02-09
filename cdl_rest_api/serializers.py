@@ -42,10 +42,10 @@ class qubitComputingSerializer(serializers.ModelSerializer):
     """ """
 
     # To Do: Cluster state configurations need to be added here
-    choices = [
-        "horseshoe",
-    ]
-    circuitConfiguration = serializers.ChoiceField(choices)
+    # choices = [
+    #     "horseshoe",
+    # ]
+    # circuitConfiguration = serializers.ChoiceField(choices)
     # assigns array of CircuitConfigurationItems for GET
     circuitAngles = CircuitConfigurationItemSerializer(many=True)
 
@@ -82,8 +82,7 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """ """
-        encodedQubitMeasurementsData = validated_data.pop(
-            "encodedQubitMeasurements")
+        encodedQubitMeasurementsData = validated_data.pop("encodedQubitMeasurements")
         qubitComputingData = validated_data.pop("qubitComputing")
         serializer = qubitComputingSerializer(data=qubitComputingData)
         serializer.is_valid()
@@ -151,6 +150,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
 class CountratesSerializer(serializers.ModelSerializer):
     """ """
+
     class Meta:
         model = models.Countrates
         fields = ("d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8")
@@ -158,6 +158,7 @@ class CountratesSerializer(serializers.ModelSerializer):
 
 class CoincidencesSerializer(serializers.ModelSerializer):
     """ """
+
     class Meta:
         model = models.Coincidences
         fields = ("c00", "c01", "c10", "c11")
@@ -165,6 +166,7 @@ class CoincidencesSerializer(serializers.ModelSerializer):
 
 class ExperimentDataSerializer(serializers.ModelSerializer):
     """ """
+
     countratePerDetector = CountratesSerializer()
     encodedQubitMeasurements = CoincidencesSerializer()
 
@@ -192,6 +194,7 @@ class ExperimentDataSerializer(serializers.ModelSerializer):
 
 class ExperimentResultPostSerializer(serializers.ModelSerializer):
     """ """
+
     experimentData = ExperimentDataSerializer()
 
     def create(self, validated_data):
@@ -210,13 +213,21 @@ class ExperimentResultPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ExperimentResult
-        fields = ("experiment", "startTime", "totalCounts",
-                  "numberOfDetectors", "singlePhotonRate", "totalTime", "experimentData")
+        fields = (
+            "experiment",
+            "startTime",
+            "totalCounts",
+            "numberOfDetectors",
+            "singlePhotonRate",
+            "totalTime",
+            "experimentData",
+        )
 
 
 class ExperimentResultGetSerializer(serializers.ModelSerializer):
     """ """
-    #experimentData = ExperimentDataSerializer()
+
+    # experimentData = ExperimentDataSerializer()
 
     def create(self, validated_data):
         experimentData = validated_data.pop("experimentData")
@@ -234,8 +245,15 @@ class ExperimentResultGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ExperimentResult
-        fields = ("experiment", "startTime", "totalCounts",
-                  "numberOfDetectors", "singlePhotonRate", "totalTime")  # , "experimentData")
+        fields = (
+            "experiment",
+            "startTime",
+            "totalCounts",
+            "numberOfDetectors",
+            "singlePhotonRate",
+            "totalTime",
+        )  # , "experimentData")
+
 
 # User Serializer
 

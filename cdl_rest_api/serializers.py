@@ -96,6 +96,7 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
         """
         encodedQubitMeasurementsData = validated_data.pop("encodedQubitMeasurements")
         qubitComputingData = validated_data.pop("qubitComputing")
+        # pass qubitComputing to qubitComputingSerializer
         serializer = qubitComputingSerializer(data=qubitComputingData)
         serializer.is_valid()
         qubitComputing = serializer.save()
@@ -118,24 +119,29 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
 
 
 class ExperimentSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for the Experiment model
+    """
 
     ComputeSettings = ComputeSettingsSerializer()
     user = serializers.ReadOnlyField(source="user.email")
     experimentId = serializers.ReadOnlyField()
 
-    # choices = ["IN QUEUE", "RUNNING", "FAILED", "DONE"]
-    # status = serializers.ChoiceField(choices)
-
     def create(self, validated_data):
+        """
+        create function for ExperimentSerializer handles the ForeignKey
+        relation between Experiment and ComputeSettings (1 Experiment has
+        1 Compute Setting)
+        """
         computeSettingsData = validated_data.pop("ComputeSettings")
         # codes lines reversed compared to above
         # Foreign Key is in Experiment, not ComputeSettings
-        # 1 Experiment has 1 Compute Setting
+        # pass ComputeSettings to ComputeSettingsSerializer
         serializer = ComputeSettingsSerializer(data=computeSettingsData)
         serializer.is_valid()
         # print(serializer.errors)
         computeSetting = serializer.save()
+        # ComputeSettings is created in the ComputeSettingsSerializer
         Experiment = models.Experiment.objects.create(
             ComputeSettings=computeSetting, **validated_data
         )
@@ -161,7 +167,9 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
 
 class CountratesSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for Countrates model
+    """
 
     class Meta:
         model = models.Countrates
@@ -169,7 +177,9 @@ class CountratesSerializer(serializers.ModelSerializer):
 
 
 class CoincidencesSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for Concidences model
+    """
 
     class Meta:
         model = models.Coincidences
@@ -177,13 +187,20 @@ class CoincidencesSerializer(serializers.ModelSerializer):
 
 
 class ExperimentDataSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for ExperimentData model
+    """
 
+    # field contains one Countrates object
     countratePerDetector = CountratesSerializer()
+    # field contains one Coincidences object
     encodedQubitMeasurements = CoincidencesSerializer()
 
     def create(self, validated_data):
-        """ """
+        """
+        create function for ExperimentDataSerializer handles ForeignKey relations
+        of ExperimentData with Countrates and Coincidences
+        """
 
         countratesData = validated_data.pop("countratePerDetector")
         serializer = CountratesSerializer(data=countratesData)

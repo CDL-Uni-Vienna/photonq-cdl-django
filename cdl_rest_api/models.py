@@ -122,8 +122,9 @@ class qubitComputing(models.Model):
     which is handled in the qubitComputingSerializer
     """
 
-    # the circuitConfiguration implied by the cluster, "horseshoe" etc.
-    # choices are handles in the qubitComputingSerializer
+    # Initially, the circuitConfiguration implied by the cluster, "horseshoe"
+    # etc. with choices are handles in the qubitComputingSerializer
+    # Current implementation: 1-to-1 mapping from circuitId
     circuitConfiguration = models.CharField(max_length=255)
 
 

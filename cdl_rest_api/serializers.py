@@ -39,7 +39,9 @@ class clusterStateSerializer(serializers.ModelSerializer):
 
 
 class qubitComputingSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for qubitComputing model
+    """
 
     # To Do: Cluster state configurations need to be added here
     # choices = [
@@ -50,7 +52,11 @@ class qubitComputingSerializer(serializers.ModelSerializer):
     circuitAngles = CircuitConfigurationItemSerializer(many=True)
 
     def create(self, validated_data):
-        """ """
+        """
+        create function for qubitComputingSerializer handles the array type of
+        the circuitAngles field. circuitAngles is an array of
+        CircuitConfigurationItems.
+        """
         # remove circuitAngles array from validated_data and store it in
         # circuitAnglesData
         circuitAnglesData = validated_data.pop("circuitAngles")
@@ -74,14 +80,20 @@ class qubitComputingSerializer(serializers.ModelSerializer):
 
 
 class ComputeSettingsSerializer(serializers.ModelSerializer):
-    """ """
+    """
+    Serializer for the ComputeSettings model
+    """
 
     qubitComputing = qubitComputingSerializer()
     clusterState = clusterStateSerializer()
     encodedQubitMeasurements = QubitMeasurementItemSerializer(many=True)
 
     def create(self, validated_data):
-        """ """
+        """
+        create function for ComputeSettingsSerializer handles the array type of
+        the encodedQubitMeasurements field. encodedQubitMeasurements is an array
+        of QubitMeasurementItems.
+        """
         encodedQubitMeasurementsData = validated_data.pop("encodedQubitMeasurements")
         qubitComputingData = validated_data.pop("qubitComputing")
         serializer = qubitComputingSerializer(data=qubitComputingData)

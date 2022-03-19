@@ -176,16 +176,6 @@ class CountratesSerializer(serializers.ModelSerializer):
         fields = ("d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8")
 
 
-class CoincidencesSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Concidences model
-    """
-
-    class Meta:
-        model = models.Coincidences
-        fields = ("c00", "c01", "c10", "c11")
-
-
 class ExperimentDataSerializer(serializers.ModelSerializer):
     """
     Serializer for ExperimentData model
@@ -193,8 +183,6 @@ class ExperimentDataSerializer(serializers.ModelSerializer):
 
     # field contains one Countrates object
     countratePerDetector = CountratesSerializer()
-    # field contains one Coincidences object
-    encodedQubitMeasurements = CoincidencesSerializer()
 
     def create(self, validated_data):
         """
@@ -206,17 +194,16 @@ class ExperimentDataSerializer(serializers.ModelSerializer):
         serializer = CountratesSerializer(data=countratesData)
         serializer.is_valid()
         countrates = serializer.save()
-        coincidencesData = validated_data.pop("encodedQubitMeasurements")
-        coincidences = models.Coincidences.objects.create(**coincidencesData)
+        coincidences = validated_data.pop("coincidenceCounts")
         ExperimentData = models.ExperimentData.objects.create(
-            countratePerDetector=countrates, encodedQubitMeasurements=coincidences
+            countratePerDetector=countrates, coincidenceCounts=coincidences
         )
 
         return ExperimentData
 
     class Meta:
         model = models.ExperimentData
-        fields = ("countratePerDetector", "encodedQubitMeasurements")
+        fields = ("countratePerDetector", "coincidenceCounts")
         # return entire object of ForeignKey assignment not just id
         depth = 1
 

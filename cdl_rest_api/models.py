@@ -1,3 +1,4 @@
+from builtins import dict
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -6,9 +7,6 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 import uuid
-
-from django.db.models.base import Model
-from django.db.models.fields import CharField, IntegerField
 
 
 class QubitMeasurementItem(models.Model):
@@ -272,17 +270,6 @@ class Countrates(models.Model):
     d8 = models.PositiveIntegerField(null=True, blank=True)
 
 
-class Coincidences(models.Model):
-    """
-    This model stores the coincidence counts for two channels
-    """
-
-    c00 = models.FloatField(null=True, blank=True)
-    c10 = models.FloatField(null=True, blank=True)
-    c01 = models.FloatField(null=True, blank=True)
-    c11 = models.FloatField(null=True, blank=True)
-
-
 class ExperimentData(models.Model):
     """
     This model stores the experimental data
@@ -291,9 +278,8 @@ class ExperimentData(models.Model):
     countratePerDetector = models.ForeignKey(
         "Countrates", on_delete=models.SET_NULL, blank=True, null=True
     )
-    encodedQubitMeasurements = models.ForeignKey(
-        "Coincidences", on_delete=models.SET_NULL, blank=True, null=True
-    )
+    # no brackets for dict callable - we do not make a call, but pass the callable
+    coincidenceCounts = models.JSONField(default=dict)
 
 
 # User Manager class tells Django how to work with the customized

@@ -112,18 +112,11 @@ class clusterState(models.Model):
 
 class qubitComputing(models.Model):
     """
-    Combines all abstract circuit settings and has two fields:
-
-    cirucitConfiguration: is defined below in the model
+    Combines all abstract circuit settings and has one fields:
 
     circuitAngles: is an array of CircuitConfigurationItem objects
     which is handled in the qubitComputingSerializer
     """
-
-    # Initially, the circuitConfiguration implied by the cluster, "horseshoe"
-    # etc. with choices are handles in the qubitComputingSerializer
-    # Current implementation: 1-to-1 mapping from circuitId
-    circuitConfiguration = models.CharField(max_length=255)
 
 
 class ComputeSettings(models.Model):

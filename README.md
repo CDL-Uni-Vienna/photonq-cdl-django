@@ -27,3 +27,5 @@ admin web-interface available via /admin
 ## How to start
 python3 manage.py runserver 0.0.0.0:8080
 API will be served on route /api
+
+23.03.2022

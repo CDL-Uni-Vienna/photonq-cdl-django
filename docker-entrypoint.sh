@@ -1,9 +1,8 @@
 #!/bin/sh
 set -e
 
-PGPASSWORD=$POSTGRES_PASSWORD
 # Test connection with psql and echo result to console.
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -p $POSTGRES_PORT -c '\l'; do
+until psql "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB" -c '\l'; do
     echo >&2 "Postgres is unavailable - sleeping"
     sleep 1
 done

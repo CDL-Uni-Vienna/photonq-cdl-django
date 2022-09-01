@@ -157,7 +157,7 @@ class ExperimentBase(models.Model):
     circuitId = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(22),
+            MaxValueValidator(23),
         ],
     )
     # the user can associate a project ID to the experiment

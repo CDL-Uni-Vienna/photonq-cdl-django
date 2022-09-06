@@ -1,12 +1,10 @@
-from builtins import dict
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import BaseUserManager
-from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
-
 import uuid
+from builtins import dict
+
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 class QubitMeasurementItem(models.Model):
@@ -211,11 +209,8 @@ class Experiment(ExperimentBase):
     # Currently this only implemented in Experiment and not in Results as
     # Result is related to an Experiment (this can be changed later to
     # assign Results to user if needed).
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-    )
+    # Link to a user in iam user service.
+    user_id = models.CharField(max_length=255, blank=False, null=False)
 
 
 class ExperimentResult(models.Model):

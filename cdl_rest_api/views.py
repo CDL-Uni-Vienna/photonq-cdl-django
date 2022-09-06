@@ -1,21 +1,12 @@
-from django.contrib.auth import login
-from rest_framework import permissions
-from rest_framework.serializers import Serializer
 
-from rest_framework.views import APIView
-from rest_framework.response import Response  # Standard Response object
-from rest_framework import status
-from rest_framework import generics
-from rest_framework.authtoken.serializers import AuthTokenSerializer
-
+from rest_framework import generics, status
 # from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response  # Standard Response object
+from rest_framework.views import APIView
 
-from knox.views import LoginView as KnoxLoginView
-
-from cdl_rest_api import serializers
-from cdl_rest_api import models
-from cdl_rest_api.permissions import UpdateOwnProfile
+from cdl_rest_api import models, serializers
+from cdl_rest_api.permissions import OriginAuthenticated, UpdateOwnProfile
 
 
 # Multiple endpoints for detail view and list view
@@ -25,7 +16,7 @@ class ExperimentDetailView(APIView):
     This View returns one Experiment object with pk = experiment_id
     """
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (OriginAuthenticated,)
     # serializers_class = serializers.ExperimentSerializer
 
     def get(self, request, experiment_id):
@@ -36,7 +27,7 @@ class ExperimentDetailView(APIView):
         experiment = None
         experimentResult = None
         if experiment_id is not None:
-            if request.user.is_staff:
+            if request.origin_user.is_staff:
                 # if Experiment exists, else remain None
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
@@ -66,7 +57,7 @@ class ExperimentDetailView(APIView):
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id,
                     # additional filter: Experiment belongs to user
-                    user=request.user,
+                    user_id=request.origin_user.id,
                 ).exists():
                     experiment = models.Experiment.objects.get(
                         experimentId=experiment_id,
@@ -128,9 +119,10 @@ class ExperimentDetailView(APIView):
         PATCH function for ExperimentDetailView
         """
 
-        if request.user.is_staff:
+        if request.origin_user.is_staff:
             if models.Experiment.objects.filter(experimentId=experiment_id).exists():
-                experiment = models.Experiment.objects.get(experimentId=experiment_id)
+                experiment = models.Experiment.objects.get(
+                    experimentId=experiment_id)
             else:
                 return Response(
                     "An Experiment with the specified ID was not found.",
@@ -163,7 +155,7 @@ class ExperimentDetailView(APIView):
         """
 
         if experiment_id is not None:
-            if request.user.is_staff:
+            if request.origin_user.is_staff:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
@@ -182,7 +174,7 @@ class ExperimentDetailView(APIView):
             else:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id,
-                    user=request.user,
+                    user_id=request.origin_user.id,
                 ).exists():
                     models.Experiment.objects.filter(
                         experimentId=experiment_id
@@ -218,20 +210,21 @@ class ExperimentListView(generics.ListCreateAPIView):
     queryset = models.Experiment.objects.all()
     serializer_class = serializers.ExperimentSerializer
     permission_classes = [
-        IsAuthenticated,
+        OriginAuthenticated,
     ]
 
     def list(self, request):
         # Note the use of `get_queryset()` instead of `self.queryset`
-        if request.user.is_staff:
+        if request.origin_user.is_staff:
             queryset = self.get_queryset()
         else:
-            queryset = models.Experiment.objects.filter(user=request.user)
+            queryset = models.Experiment.objects.filter(
+                user_id=request.origin_user)
         serializer = serializers.ExperimentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # need to overwrite create to save user to experiment
-    # user=request.user is what the standard method doesn't do
+    # user_id=request.origin_user.id is what the standard method doesn't do
     def create(self, request):
         data = request.data
         # overwrites status field in view
@@ -241,7 +234,7 @@ class ExperimentListView(generics.ListCreateAPIView):
         serializer = serializers.ExperimentSerializer(data=data)
         # print(request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(user_id=request.origin_user.id)
             # print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -267,7 +260,7 @@ class ExperimentResultView(APIView):
             # retrieve data from db and store in experiment and
             # experimentResult variables:
             # if staff user
-            if request.user.is_staff:
+            if request.origin_user.is_staff:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
@@ -293,7 +286,7 @@ class ExperimentResultView(APIView):
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id,
                     # filter also: Experiment belongs to user
-                    user=request.user,
+                    user_id=request.origin_user.id,
                 ).exists():
                     experiment = models.Experiment.objects.get(
                         experimentId=experiment_id,
@@ -362,7 +355,7 @@ class ExperimentResultView(APIView):
         # currently user deletes Experiment not Result
         # TO DO: check if obsolete due to ResultDetailView endpoint
         if experiment_id is not None:
-            if request.user.is_staff:
+            if request.origin_user.is_staff:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
@@ -381,7 +374,7 @@ class ExperimentResultView(APIView):
             else:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id,
-                    user=request.user,
+                    user_id=request.origin_user.id,
                 ).exists():
                     models.Experiment.objects.filter(
                         experimentId=experiment_id
@@ -428,8 +421,10 @@ class ExperimentDataView(generics.RetrieveAPIView):
 
     def retrieve(self, request, experiment_id):
         if models.Experiment.objects.filter(experimentId=experiment_id).exists():
-            queryset = models.Experiment.objects.filter(experimentId=experiment_id)
-            serializer = serializers.ExperimentDataSerializer(queryset, many=False)
+            queryset = models.Experiment.objects.filter(
+                experimentId=experiment_id)
+            serializer = serializers.ExperimentDataSerializer(
+                queryset, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(
@@ -469,33 +464,6 @@ class RegisterView(generics.CreateAPIView):
 
     queryset = models.UserProfile.objects.all()
     serializer_class = serializers.UserProfileSerializer
-
-
-class UserLoginApiView(KnoxLoginView):
-    """
-    Handle creating user authentication tokens
-    """
-
-    # renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-    permission_classes = (AllowAny,)
-
-    def post(self, request, format=None):
-        serializer = AuthTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        userId = user.id
-        userEmail = user.email
-        userName = user.name
-        # create session based auth with token auth
-        login(request, user)
-        # super() method lets you access methods from a parent class from
-        # within a child class
-        temp_list = super(UserLoginApiView, self).post(request, format=None)
-        temp_list.data["id"] = userId
-        temp_list.data["email"] = userEmail
-        temp_list.data["name"] = userName
-
-        return Response(temp_list.data)
 
 
 class UserUpdateView(generics.UpdateAPIView):

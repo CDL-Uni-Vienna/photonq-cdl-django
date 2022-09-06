@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
+from cdl_rest_api import models
+
 # from django.contrib.auth.models import User
 
-from cdl_rest_api import models
 
 
 class QubitMeasurementItemSerializer(serializers.ModelSerializer):
@@ -124,7 +125,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     """
 
     ComputeSettings = ComputeSettingsSerializer()
-    user = serializers.ReadOnlyField(source="user.email")
+    user_id = serializers.ReadOnlyField()
     experimentId = serializers.ReadOnlyField()
 
     def create(self, validated_data):
@@ -153,7 +154,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
         model = models.Experiment
         fields = (
             # object Experiment has no Database ID
-            "user",
+            "user_id",
             "status",
             "created",
             "experimentName",

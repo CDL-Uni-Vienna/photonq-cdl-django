@@ -47,8 +47,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "rest_framework.authtoken",
-    "knox",
     # Own app
     "cdl_rest_api",
     # BIFROST
@@ -68,7 +66,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
+    'cdl_webservice.middlewares.OriginMidddleware',
 ]
+
 
 ROOT_URLCONF = "cdl_webservice.urls"
 
@@ -180,15 +180,15 @@ BASE_URL = "http://example.com"
 # Configure the default authentication model
 AUTH_USER_MODEL = "cdl_rest_api.UserProfile"
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        # "rest_framework.authentication.TokenAuthentication",
-        "knox.auth.TokenAuthentication",
-    ),
-    # 'DEFAULT_PERMISSION_CLASSES':(
-    #             'rest_framework.permissions.IsAuthenticated',
-    # ),
-}
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": (
+#         # "rest_framework.authentication.TokenAuthentication",
+#         "knox.auth.TokenAuthentication",
+#     ),
+#     # 'DEFAULT_PERMISSION_CLASSES':(
+#     #             'rest_framework.permissions.IsAuthenticated',
+#     # ),
+# }
 
 BIFROST_APPS = {
     "cdl_rest_api": "",
@@ -204,4 +204,3 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
-

@@ -5,7 +5,6 @@ from cdl_rest_api import models
 # from django.contrib.auth.models import User
 
 
-
 class QubitMeasurementItemSerializer(serializers.ModelSerializer):
     """
     Serializer for the QubitMeasurementItem
@@ -95,7 +94,8 @@ class ComputeSettingsSerializer(serializers.ModelSerializer):
         the encodedQubitMeasurements field. encodedQubitMeasurements is an array
         of QubitMeasurementItems.
         """
-        encodedQubitMeasurementsData = validated_data.pop("encodedQubitMeasurements")
+        encodedQubitMeasurementsData = validated_data.pop(
+            "encodedQubitMeasurements")
         qubitComputingData = validated_data.pop("qubitComputing")
         # pass qubitComputing to qubitComputingSerializer
         serializer = qubitComputingSerializer(data=qubitComputingData)
@@ -134,6 +134,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
         relation between Experiment and ComputeSettings (1 Experiment has
         1 Compute Setting)
         """
+        print(validated_data)
         computeSettingsData = validated_data.pop("ComputeSettings")
         # codes lines reversed compared to above
         # Foreign Key is in Experiment, not ComputeSettings

@@ -219,7 +219,7 @@ class ExperimentListView(generics.ListCreateAPIView):
             queryset = self.get_queryset()
         else:
             queryset = models.Experiment.objects.filter(
-                user_id=request.origin_user)
+                user_id=request.origin_user.id)
         serializer = serializers.ExperimentSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

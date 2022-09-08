@@ -17,7 +17,7 @@ class IsOriginAuthenticated(permissions.BasePermission):
     """Allow only authenticated users to access the API"""
 
     def has_permission(self, request, view):
-        print("origin user", request.origin_user)
+        print("origin user", request.origin_user.__dict__)
         """Check if user is authenticated"""
         return request.origin_user
 

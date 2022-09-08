@@ -29,7 +29,7 @@ class OriginMidddleware:
             try:
                 decoded: dict = jwt.decode(token, verify=False)
 
-                user_id = decoded.get("user_id")
+                user_id = decoded.get("sub")
                 is_staff = decoded.get("is_staff")
                 is_admin = decoded.get("is_admin")
 

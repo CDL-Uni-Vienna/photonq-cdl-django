@@ -1,12 +1,13 @@
 
 from rest_framework import generics, status
 # from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsOriginAuthenticated
 from rest_framework.response import Response  # Standard Response object
 from rest_framework.views import APIView
 
 from cdl_rest_api import models, serializers
-from cdl_rest_api.permissions import OriginAuthenticated, UpdateOwnProfile
+from cdl_rest_api.permissions import (IsOriginAdminUser, IsOriginAuthenticated,
+                                      UpdateOwnProfile)
 
 
 # Multiple endpoints for detail view and list view
@@ -16,7 +17,7 @@ class ExperimentDetailView(APIView):
     This View returns one Experiment object with pk = experiment_id
     """
 
-    permission_classes = (OriginAuthenticated,)
+    permission_classes = (IsOriginAuthenticated,)
     # serializers_class = serializers.ExperimentSerializer
 
     def get(self, request, experiment_id):
@@ -210,7 +211,7 @@ class ExperimentListView(generics.ListCreateAPIView):
     queryset = models.Experiment.objects.all()
     serializer_class = serializers.ExperimentSerializer
     permission_classes = [
-        OriginAuthenticated,
+        IsOriginAuthenticated,
     ]
 
     def list(self, request):
@@ -247,7 +248,7 @@ class ExperimentResultView(APIView):
     and is logically equivalent to ExperimentDetailView
     """
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsOriginAuthenticated,)
     # serializers_class = serializers.ExperimentSerializer
 
     def get(self, request, experiment_id):
@@ -405,7 +406,7 @@ class ExperimentQueueView(generics.RetrieveUpdateAPIView):
     queryset = models.Experiment.objects.filter(status="IN QUEUE")
     serializer_class = serializers.ExperimentSerializer
     permission_classes = [
-        IsAdminUser,
+        IsOriginAdminUser,
     ]
 
     def retrieve(self, request):
@@ -442,7 +443,7 @@ class ResultView(generics.ListCreateAPIView):
     queryset = models.ExperimentResult.objects.all()
     serializer_class = serializers.ExperimentResultPostSerializer
     permission_classes = [
-        IsAdminUser,
+        IsOriginAdminUser,
     ]
 
 
@@ -453,7 +454,7 @@ class ResultDetailView(generics.RetrieveDestroyAPIView):
     queryset = models.ExperimentResult.objects.all()
     serializer_class = serializers.ExperimentResultPostSerializer
     permission_classes = [
-        IsAdminUser,
+        IsOriginAdminUser,
     ]
 
 
@@ -470,6 +471,6 @@ class UserUpdateView(generics.UpdateAPIView):
     queryset = models.UserProfile.objects.all()
     serializer_class = serializers.UserProfileSerializer
     permission_classes = [
-        IsAuthenticated,
+        IsOriginAuthenticated,
         UpdateOwnProfile,
     ]

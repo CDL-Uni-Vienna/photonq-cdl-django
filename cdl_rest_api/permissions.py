@@ -13,10 +13,18 @@ class UpdateOwnProfile(permissions.BasePermission):
         return obj.id == request.user.id
 
 
-class OriginAuthenticated(permissions.BasePermission):
+class IsOriginAuthenticated(permissions.BasePermission):
     """Allow only authenticated users to access the API"""
 
     def has_permission(self, request, view):
         print("origin user", request.origin_user)
         """Check if user is authenticated"""
         return request.origin_user
+
+
+class IsOriginAdminUser(permissions.BasePermission):
+    """Allow only admin users to access the API"""
+
+    def has_permission(self, request, view):
+        """Check if user is admin"""
+        return request.origin_user.is_admin

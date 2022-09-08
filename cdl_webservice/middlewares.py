@@ -15,9 +15,10 @@ class OriginMidddleware:
     def process_request(self, request):
 
         class OriginUser:
-            def __init__(self, user_id=None):
+            def __init__(self, user_id=None, is_staff=False, is_admin=False):
                 self.id = user_id
-                self.is_staff = True
+                self.is_staff = is_staff
+                self.is_admin = is_admin
 
         user = None
 
@@ -28,7 +29,12 @@ class OriginMidddleware:
             try:
                 decoded = jwt.decode(token, verify=False)
 
-                user = OriginUser(decoded["sub"])
+                user = OriginUser(
+                    decoded["sub"],
+                    is_admin=decoded["is_admin"],
+                    is_staff=decoded["is_staff"]
+                )
+
             except:
                 user = None
 

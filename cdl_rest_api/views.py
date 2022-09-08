@@ -1,7 +1,6 @@
 
 from rest_framework import generics, status
 # from rest_framework.settings import api_settings
-from rest_framework.permissions import IsOriginAuthenticated
 from rest_framework.response import Response  # Standard Response object
 from rest_framework.views import APIView
 

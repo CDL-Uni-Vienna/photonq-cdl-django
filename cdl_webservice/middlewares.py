@@ -27,15 +27,20 @@ class OriginMidddleware:
 
             token = request.META["HTTP_AUTHORIZATION"].split(" ")[1]
             try:
-                decoded = jwt.decode(token, verify=False)
+                decoded: dict = jwt.decode(token, verify=False)
+
+                user_id = decoded.get("user_id")
+                is_staff = decoded.get("is_staff")
+                is_admin = decoded.get("is_admin")
 
                 user = OriginUser(
-                    decoded["sub"],
-                    is_admin=decoded["is_admin"],
-                    is_staff=decoded["is_staff"]
+                    user_id=user_id,
+                    is_staff=is_staff,
+                    is_admin=is_admin,
                 )
 
-            except:
+            except Exception as e:
+                print("Error in origin user", e)
                 user = None
 
         request.origin_user = user

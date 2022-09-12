@@ -27,7 +27,7 @@ class ExperimentDetailView(APIView):
         experiment = None
         experimentResult = None
         if experiment_id is not None:
-            if request.origin_user.is_staff:
+            if request.origin_user.is_admin:
                 # if Experiment exists, else remain None
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
@@ -119,7 +119,7 @@ class ExperimentDetailView(APIView):
         PATCH function for ExperimentDetailView
         """
 
-        if request.origin_user.is_staff:
+        if request.origin_user.is_admin:
             if models.Experiment.objects.filter(experimentId=experiment_id).exists():
                 experiment = models.Experiment.objects.get(
                     experimentId=experiment_id)
@@ -155,7 +155,7 @@ class ExperimentDetailView(APIView):
         """
 
         if experiment_id is not None:
-            if request.origin_user.is_staff:
+            if request.origin_user.is_admin:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
@@ -215,7 +215,7 @@ class ExperimentListView(generics.ListCreateAPIView):
 
     def list(self, request):
         # Note the use of `get_queryset()` instead of `self.queryset`
-        if request.origin_user.is_staff:
+        if request.origin_user.is_admin:
             queryset = self.get_queryset()
         else:
             queryset = models.Experiment.objects.filter(
@@ -260,7 +260,7 @@ class ExperimentResultView(APIView):
             # retrieve data from db and store in experiment and
             # experimentResult variables:
             # if staff user
-            if request.origin_user.is_staff:
+            if request.origin_user.is_admin:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():
@@ -355,7 +355,7 @@ class ExperimentResultView(APIView):
         # currently user deletes Experiment not Result
         # TO DO: check if obsolete due to ResultDetailView endpoint
         if experiment_id is not None:
-            if request.origin_user.is_staff:
+            if request.origin_user.is_admin:
                 if models.Experiment.objects.filter(
                     experimentId=experiment_id
                 ).exists():

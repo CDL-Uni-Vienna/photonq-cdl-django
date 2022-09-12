@@ -119,7 +119,7 @@ class ExperimentDetailView(APIView):
         PATCH function for ExperimentDetailView
         """
 
-        if request.origin_user.is_staff or True:
+        if request.origin_user.is_staff:
             if models.Experiment.objects.filter(experimentId=experiment_id).exists():
                 experiment = models.Experiment.objects.get(
                     experimentId=experiment_id)

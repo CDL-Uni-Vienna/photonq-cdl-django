@@ -1,5 +1,5 @@
 import jwt
-
+from django.conf import settings
 
 class OriginMidddleware:
 
@@ -27,7 +27,7 @@ class OriginMidddleware:
 
             token = request.META["HTTP_AUTHORIZATION"].split(" ")[1]
             try:
-                decoded: dict = jwt.decode(token, verify=False)
+                decoded: dict = jwt.decode(token, key=settings.SECRET_KEY)
 
                 user_id = decoded.get("sub")
                 is_staff = decoded.get("is_staff")
